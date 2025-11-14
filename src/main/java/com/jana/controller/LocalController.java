@@ -1,18 +1,18 @@
 package main.java.com.jana.controller;
 
 import com.google.gson.Gson;
-import main.java.com.jana.dao.RecursoDAO;
-import main.java.com.jana.dao.UsuarioDAO; 
-import main.java.com.jana.dtos.recurso.RecursoRegisterDTO;
-import main.java.com.jana.dtos.recurso.RecursoResponseDTO;
-import main.java.com.jana.dtos.recurso.RecursoUpdateDTO;
+import main.java.com.jana.dao.LocalDAO;
+import main.java.com.jana.dao.UsuarioDAO;
+import main.java.com.jana.dtos.local.LocalRegisterDTO;
+import main.java.com.jana.dtos.local.LocalResponseDTO;
+import main.java.com.jana.dtos.local.LocalUpdateDTO;
 import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
-import main.java.com.jana.exceptions.RecursoNaoEncontradoException;
-import main.java.com.jana.exceptions.UsuarioNaoEncontradoException; 
+import main.java.com.jana.exceptions.LocalNaoEncontradoException;
+import main.java.com.jana.exceptions.UsuarioNaoEncontradoException;
 import main.java.com.jana.model.enums.Perfil;
 import main.java.com.jana.security.TokenService;
-import main.java.com.jana.service.RecursoService;
-import main.java.com.jana.service.UsuarioService; 
+import main.java.com.jana.service.LocalService;
+import main.java.com.jana.service.UsuarioService;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,10 +21,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/recursos/*")
+@WebServlet("/locais/*") 
 
-public class RecursoController extends HttpServlet {
-    private final RecursoService recursoService = new RecursoService(new RecursoDAO());
+public class LocalController extends HttpServlet {
+    private final LocalService localService = new LocalService(new LocalDAO());
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
     private final Gson gson = new Gson();
 
@@ -40,27 +40,27 @@ public class RecursoController extends HttpServlet {
                 resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
                 return;
             }
-            
-            TokenService.extractUserIdFromToken(token); 
+
+            TokenService.extractUserIdFromToken(token);
 
             Integer id = extrairIdDaUrl(req);
 
             if (id == null) {
-                List<RecursoResponseDTO> recursos = recursoService.getAllRecursos();
-                resp.getWriter().write(gson.toJson(recursos));
+                List<LocalResponseDTO> locais = localService.getAllLocais();
+                resp.getWriter().write(gson.toJson(locais));
             } else {
-                RecursoResponseDTO recurso = recursoService.getRecurso(id);
-                resp.getWriter().write(gson.toJson(recurso));
+                LocalResponseDTO local = localService.getLocal(id);
+                resp.getWriter().write(gson.toJson(local));
             }
             resp.setStatus(HttpServletResponse.SC_OK);
 
-        } catch (RecursoNaoEncontradoException e) {
+        } catch (LocalNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(gson.toJson(e.getMessage()));
         } catch (Exception e) { 
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().write(gson.toJson("Token inválido ou erro no servidor: " + e.getMessage()));
-            e.printStackTrace(); 
+            e.printStackTrace();
         }
     }
 
@@ -78,7 +78,6 @@ public class RecursoController extends HttpServlet {
             }
 
             Long userId = TokenService.extractUserIdFromToken(token);
-            
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
             
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
@@ -86,15 +85,16 @@ public class RecursoController extends HttpServlet {
                 resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
                 return;
             }
-           
-            RecursoRegisterDTO dto = gson.fromJson(req.getReader(), RecursoRegisterDTO.class);
-            recursoService.createRecurso(dto, userId.intValue());
+
+            LocalRegisterDTO dto = gson.fromJson(req.getReader(), LocalRegisterDTO.class);
+
+            localService.createLocal(dto, userId.intValue());
             
-            resp.setStatus(HttpServletResponse.SC_CREATED); 
-            resp.getWriter().write(gson.toJson("Recurso cadastrado com sucesso"));
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            resp.getWriter().write(gson.toJson("Local cadastrado com sucesso"));
 
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); 
             resp.getWriter().write(gson.toJson("Usuário do token inválido."));
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -128,18 +128,18 @@ public class RecursoController extends HttpServlet {
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(gson.toJson("ID do recurso ausente na URL. Ex: /recursos/123"));
+                resp.getWriter().write(gson.toJson("ID do local ausente na URL."));
                 return;
             }
 
-            RecursoUpdateDTO dto = gson.fromJson(req.getReader(), RecursoUpdateDTO.class);
+            LocalUpdateDTO dto = gson.fromJson(req.getReader(), LocalUpdateDTO.class);
 
-            recursoService.updateRecurso(id, dto);
+            localService.updateLocal(id, dto);
             
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(gson.toJson("Recurso atualizado com sucesso"));
+            resp.getWriter().write(gson.toJson("Local atualizado com sucesso"));
 
-        } catch (RecursoNaoEncontradoException e) {
+        } catch (LocalNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(gson.toJson(e.getMessage()));
         } catch (UsuarioNaoEncontradoException e) {
@@ -173,20 +173,20 @@ public class RecursoController extends HttpServlet {
                 resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
                 return;
             }
-   
+
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(gson.toJson("ID do recurso ausente na URL. Ex: /recursos/123"));
+                resp.getWriter().write(gson.toJson("ID do local ausente na URL."));
                 return;
             }
 
-            recursoService.deleteRecurso(id);
+            localService.deleteLocal(id);
             
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(gson.toJson("Recurso deletado com sucesso"));
+            resp.getWriter().write(gson.toJson("Local deletado com sucesso"));
 
-        } catch (RecursoNaoEncontradoException e) {
+        } catch (LocalNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(gson.toJson(e.getMessage()));
         } catch (UsuarioNaoEncontradoException e) {
