@@ -70,8 +70,7 @@ public class LocalDAO {
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             preparedStatement.setInt(1, local.getUserId());
-            preparedStatement.setString(2, local.getLocal().toString()); 
-o
+            preparedStatement.setString(2, local.getLocal().toString());
             if (local.getAno() != null) {
                 preparedStatement.setString(3, local.getAno().toString());
             } else {
