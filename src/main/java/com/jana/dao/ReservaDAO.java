@@ -10,17 +10,67 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.time.LocalTime;
 
 public class ReservaDAO {
 
-    public Reserva findReservaById(Integer reservaId) throws SQLException, ReservaNaoEncontradaException {
-        String sql = "SELECT * FROM reserva WHERE reservaId = ?";
-
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM reserva WHERE reservaId = ?";
+    private static final String FIND_ALL_SQL = "SELECT * FROM reserva";
+    private static final String INSERT_SQL = "INSERT INTO reserva (userId, recursoId, localId, dataReservada, observacao, periodo, horaRetirada, horaEntrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_SQL = "UPDATE reserva SET userId = ?, recursoId = ?, localId = ?, dataReservada = ?, observacao = ?, periodo = ?, horaRetirada = ?, horaEntrega = ? WHERE reservaId = ?";
+    private static final String DELETE_SQL = "DELETE FROM reserva WHERE reservaId = ?";
+    private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM reserva WHERE userId = ?";
+    private static final String CHECK_CONFLICT_SQL = "SELECT COUNT(*) FROM reserva WHERE recursoId = ? AND dataReservada = ? AND periodo = ?";
+    public void saveReserva(Reserva reserva) throws SQLException {
         try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+
+            preparedStatement.setInt(1, reserva.getUserId());
+            preparedStatement.setInt(2, reserva.getRecursoId());
+            preparedStatement.setInt(3, reserva.getLocalId());
+
+            if (reserva.getDataReservada() != null) {
+                preparedStatement.setDate(4, new java.sql.Date(reserva.getDataReservada().getTime()));
+            } else {
+                preparedStatement.setNull(4, java.sql.Types.DATE);
+            }
+
+            preparedStatement.setString(5, reserva.getObservacao());
+            preparedStatement.setString(6, reserva.getPeriodo().toString());
+
+            // Tratamento da Hora de Retirada: LocalTime (Model) -> java.sql.Time (DB)
+            if (reserva.getHoraRetirada() != null) {
+                // Converte LocalTime para sql.Time
+                preparedStatement.setTime(7, java.sql.Time.valueOf(reserva.getHoraRetirada()));
+            } else {
+                preparedStatement.setNull(7, java.sql.Types.TIME);
+            }
+
+            preparedStatement.setTime(8, reserva.getHoraEntrega());
+
+            int affectedRows = preparedStatement.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Falha ao criar reserva, nenhuma linha afetada.");
+            }
+
+            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    reserva.setReservaId(generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Falha ao criar reserva, ID não obtido.");
+                }
+            }
+        }
+    }
+
+    public Reserva findReservaById(Integer reservaId) throws SQLException {
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
 
             preparedStatement.setInt(1, reservaId);
 
@@ -33,13 +83,51 @@ public class ReservaDAO {
             }
         }
     }
+    public List<Reserva> findReservasByUserId(Integer userId) throws SQLException {
+        List<Reserva> reservas = new ArrayList<>();
+
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_USER_ID_SQL)) {
+
+            preparedStatement.setInt(1, userId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    reservas.add(resultSetToReserva(resultSet));
+                }
+            }
+        }
+
+        return reservas;
+    }
+
+    public boolean checkConflict(Integer recursoId, Date dataReservada, Periodo periodo) throws SQLException {
+        int count = 0;
+
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(CHECK_CONFLICT_SQL)) {
+
+            preparedStatement.setInt(1, recursoId);
+            preparedStatement.setDate(2, new java.sql.Date(dataReservada.getTime()));
+            preparedStatement.setString(3, periodo.toString());
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    count = resultSet.getInt(1);
+                }
+            }
+        }
+        return count > 0;
+    }
+
+
 
     public List<Reserva> findAll() throws SQLException {
         List<Reserva> reservas = new ArrayList<>();
-        String sql = "SELECT * FROM reserva";
-
         try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_SQL);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
@@ -49,85 +137,31 @@ public class ReservaDAO {
         return reservas;
     }
 
-    public List<Reserva> findReservasByUserId(Integer userId) throws SQLException {
-        List<Reserva> reservas = new ArrayList<>();
-        String sql = "SELECT * FROM reserva WHERE userId = ? ORDER BY dataReservada DESC, horaRetirada DESC";
-
+    public void updateReserva(Reserva reserva) throws SQLException {
         try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setInt(1, userId);
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    reservas.add(resultSetToReserva(resultSet));
-                }
-            }
-        }
-        return reservas;
-    }
-
-    public void saveReserva(Reserva reserva) throws SQLException {
-        String sql = "INSERT INTO reserva (userId, recursoId, localId, dataReservada, observacao, periodo, horaRetirada, horaEntrega) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection connection = Conexao.getConnection();
-
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
 
             preparedStatement.setInt(1, reserva.getUserId());
             preparedStatement.setInt(2, reserva.getRecursoId());
             preparedStatement.setInt(3, reserva.getLocalId());
-            preparedStatement.setDate(4, reserva.getDataReservada());
+
+            if (reserva.getDataReservada() != null) {
+                preparedStatement.setDate(4, new java.sql.Date(reserva.getDataReservada().getTime()));
+            } else {
+                preparedStatement.setNull(4, java.sql.Types.DATE);
+            }
+
+            preparedStatement.setString(5, reserva.getObservacao());
             preparedStatement.setString(6, reserva.getPeriodo().toString());
-            preparedStatement.setTime(7, reserva.getHoraRetirada());
 
-            if (reserva.getObservacao() != null) {
-                preparedStatement.setString(5, reserva.getObservacao());
+            if (reserva.getHoraRetirada() != null) {
+                preparedStatement.setTime(7, java.sql.Time.valueOf(reserva.getHoraRetirada()));
             } else {
-                preparedStatement.setNull(5, Types.VARCHAR);
+                preparedStatement.setNull(7, java.sql.Types.TIME);
             }
-            if (reserva.getHoraEntrega() != null) {
-                preparedStatement.setTime(8, reserva.getHoraEntrega());
-            } else {
-                preparedStatement.setNull(8, Types.TIME);
-            }
+            preparedStatement.setTime(8, reserva.getHoraEntrega());
 
-            preparedStatement.executeUpdate();
-
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    reserva.setReservaId(generatedKeys.getInt(1));
-                }
-            }
-        }
-    }
-
-    public void updateReserva(Reserva reserva) throws SQLException, ReservaNaoEncontradaException {
-        String sql = "UPDATE reserva SET userId = ?, recursoId = ?, localId = ?, dataReservada = ?, observacao = ?, periodo = ?, horaRetirada = ?, horaEntrega = ? WHERE reservaId = ?";
-
-        try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setInt(1, reserva.getUserId());
-            preparedStatement.setInt(2, reserva.getRecursoId());
-            preparedStatement.setInt(3, reserva.getLocalId());
-            preparedStatement.setDate(4, reserva.getDataReservada());
-            preparedStatement.setString(6, reserva.getPeriodo().toString());
-            preparedStatement.setTime(7, reserva.getHoraRetirada());
-
-            if (reserva.getObservacao() != null) {
-                preparedStatement.setString(5, reserva.getObservacao());
-            } else {
-                preparedStatement.setNull(5, Types.VARCHAR);
-            }
-            if (reserva.getHoraEntrega() != null) {
-                preparedStatement.setTime(8, reserva.getHoraEntrega());
-            } else {
-                preparedStatement.setNull(8, Types.TIME);
-            }
-
-            preparedStatement.setInt(9, reserva.getReservaId()); // WHERE clause
+            preparedStatement.setInt(9, reserva.getReservaId());
 
             int result = preparedStatement.executeUpdate();
             if (result == 0) {
@@ -136,62 +170,48 @@ public class ReservaDAO {
         }
     }
 
-    public void deleteById(Integer id) throws SQLException {
-        String sql = "DELETE FROM reserva WHERE reservaId = ?";
-
+    public void deleteById(Integer reservaId) throws SQLException {
         try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SQL)) {
 
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-        }
-    }
+            preparedStatement.setInt(1, reservaId);
 
-    public boolean checkConflict(Integer recursoId, java.sql.Date dataReservada, Periodo periodo) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM reserva " +
-                "WHERE recursoId = ? AND dataReservada = ? AND periodo = ? AND horaEntrega IS NULL";
-
-        try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setInt(1, recursoId);
-            preparedStatement.setDate(2, dataReservada);
-            preparedStatement.setString(3, periodo.toString());
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt(1) > 0;
-                }
+            int result = preparedStatement.executeUpdate();
+            if (result == 0) {
+                throw new ReservaNaoEncontradaException("Reserva com id: " + reservaId + " não encontrada para exclusão.");
             }
         }
-        return false;
     }
 
     private Reserva resultSetToReserva(ResultSet resultSet) throws SQLException {
-        // Assume-se que a classe Reserva tem um construtor ou setters apropriados
-        int reservaId = resultSet.getInt("reservaId");
-        int userId = resultSet.getInt("userId");
-        int recursoId = resultSet.getInt("recursoId");
-        int localId = resultSet.getInt("localId");
 
-        java.sql.Date dataReservada = resultSet.getDate("dataReservada");
+        Integer reservaId = resultSet.getInt("reservaId");
+        Integer userId = resultSet.getInt("userId");
+        Integer recursoId = resultSet.getInt("recursoId");
+        Integer localId = resultSet.getInt("localId");
+
+        java.sql.Date sqlDate = resultSet.getDate("dataReservada");
+        Date dataReservada = (sqlDate != null) ? new Date(sqlDate.getTime()) : null;
+
         String observacao = resultSet.getString("observacao");
-
         Periodo periodo = Periodo.valueOf(resultSet.getString("periodo"));
 
-        java.sql.Time horaRetirada = resultSet.getTime("horaRetirada");
-        java.sql.Time horaEntrega = resultSet.getTime("horaEntrega"); // Pode ser null
+        Time sqlTimeRetirada = resultSet.getTime("horaRetirada");
+        LocalTime horaRetirada = (sqlTimeRetirada != null) ? sqlTimeRetirada.toLocalTime() : null;
 
-        return new Reserva(
-                reservaId,
-                userId,
-                recursoId,
-                localId,
-                dataReservada,
-                observacao,
-                periodo,
-                horaRetirada,
-                horaEntrega
-        );
+        Time horaEntrega = resultSet.getTime("horaEntrega");
+
+        Reserva reserva = new Reserva();
+        reserva.setReservaId(reservaId);
+        reserva.setUserId(userId);
+        reserva.setRecursoId(recursoId);
+        reserva.setLocalId(localId);
+        reserva.setDataReservada(dataReservada);
+        reserva.setObservacao(observacao);
+        reserva.setPeriodo(periodo);
+        reserva.setHoraRetirada(horaRetirada);
+        reserva.setHoraEntrega(horaEntrega);
+
+        return reserva;
     }
 }

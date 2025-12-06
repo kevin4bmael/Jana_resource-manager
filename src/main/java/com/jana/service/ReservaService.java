@@ -7,24 +7,22 @@ import main.java.com.jana.dtos.reserva.ReservaUpdateDTO;
 import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.exceptions.ReservaNaoEncontradaException;
 import main.java.com.jana.model.Reserva;
+import main.java.com.jana.model.enums.Periodo;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ReservaService {
-    private final ReservaDAO reservaDAO;
 
+    private final ReservaDAO reservaDAO;
 
     public ReservaService(ReservaDAO reservaDAO) {
         this.reservaDAO = reservaDAO;
     }
 
-    public ReservaResponseDTO getReserva(Integer id) throws SQLException, ReservaNaoEncontradaException {
+    public ReservaResponseDTO getReserva(Integer id) throws SQLException {
         Reserva reserva = reservaDAO.findReservaById(id);
-        if (reserva == null) {
-            throw new ReservaNaoEncontradaException("Reserva com id: " + id + " não encontrada!");
-        }
         return mapToReservaResponseDTO(reserva);
     }
 
@@ -40,9 +38,9 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
-    public void createReserva(ReservaRegisterDTO dto, Integer userId) throws SQLException, BusinessException {
-        if (dto.dataReservada() == null || dto.recursoId() == null || dto.localId() == null) {
-            throw new BusinessException("Os campos Recurso, Local e Data são obrigatórios para a reserva.");
+    public void createReserva(ReservaRegisterDTO dto, Integer userId) throws BusinessException, SQLException {
+        if (dto.dataReservada() == null || dto.recursoId() == null || dto.localId() == null || dto.periodo() == null) {
+            throw new BusinessException("Os campos Recurso, Local, Data e Período são obrigatórios para a reserva.");
         }
 
         boolean conflito = reservaDAO.checkConflict(
@@ -56,14 +54,13 @@ public class ReservaService {
         }
 
         Reserva novaReserva = new Reserva(
-                null,
                 userId,
                 dto.recursoId(),
                 dto.localId(),
                 dto.dataReservada(),
                 dto.observacao(),
                 dto.periodo(),
-                dto.horaRetirada(),
+                dto.horaRetirada().toLocalTime(),
                 null
         );
 
@@ -71,18 +68,14 @@ public class ReservaService {
     }
 
     public void updateReserva(Integer id, ReservaUpdateDTO dto) throws SQLException, ReservaNaoEncontradaException {
-        Reserva reserva = reservaDAO.findReservaById(id);
-
-        if (reserva == null) {
-            throw new ReservaNaoEncontradaException("Reserva com id: " + id + " não encontrada para atualização!");
-        }
+        Reserva reserva = reservaDAO.findReservaById(id); // Lança 404 se não existir
 
         if (dto.recursoId() != null) reserva.setRecursoId(dto.recursoId());
         if (dto.localId() != null) reserva.setLocalId(dto.localId());
         if (dto.dataReservada() != null) reserva.setDataReservada(dto.dataReservada());
         if (dto.observacao() != null) reserva.setObservacao(dto.observacao());
         if (dto.periodo() != null) reserva.setPeriodo(dto.periodo());
-        if (dto.horaRetirada() != null) reserva.setHoraRetirada(dto.horaRetirada());
+        if (dto.horaRetirada() != null) reserva.setHoraRetirada(dto.horaRetirada().toLocalTime());
 
         if (dto.horaEntrega() != null) reserva.setHoraEntrega(dto.horaEntrega());
 
@@ -90,9 +83,8 @@ public class ReservaService {
     }
 
     public void deleteReserva(Integer id) throws SQLException, ReservaNaoEncontradaException {
-        if (reservaDAO.findReservaById(id) == null) {
-            throw new ReservaNaoEncontradaException("Reserva com id: " + id + " não encontrada para exclusão!");
-        }
+        reservaDAO.findReservaById(id);
+
         reservaDAO.deleteById(id);
     }
 

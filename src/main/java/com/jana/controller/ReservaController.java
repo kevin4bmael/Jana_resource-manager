@@ -70,13 +70,11 @@ public class ReservaController extends HttpServlet {
 
             if (id != null) {
                 ReservaResponseDTO reserva = reservaService.getReserva(id);
-                // Permissão: Acesso a qualquer um
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getWriter().write(gson.toJson(reserva));
 
             } else {
                 if (usuarioToken.perfil() != Perfil.ADMIN) {
-                    // Se não for Admin, retorna apenas as reservas do próprio usuário
                     List<ReservaResponseDTO> reservas = reservaService.getReservasByUserId(userIdToken.intValue());
                     resp.setStatus(HttpServletResponse.SC_OK);
                     resp.getWriter().write(gson.toJson(reservas));
@@ -160,7 +158,6 @@ public class ReservaController extends HttpServlet {
 
             ReservaUpdateDTO dto = gson.fromJson(req.getReader(), ReservaUpdateDTO.class);
 
-            // 3. Autorização (Verifica se é o dono ou Admin)
             ReservaResponseDTO reservaExistente = reservaService.getReserva(id);
             if (reservaExistente.userId() != userIdToken.intValue() && usuarioToken.perfil() != Perfil.ADMIN) {
                 resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
