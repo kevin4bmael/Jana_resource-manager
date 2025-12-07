@@ -59,7 +59,7 @@ public class ReservaService {
                 dto.dataReservada(),
                 dto.observacao(),
                 dto.periodo(),
-                dto.horaRetirada().toLocalTime(),
+                dto.horaRetirada(),
                 null
         );
 

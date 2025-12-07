@@ -1,6 +1,7 @@
 package main.java.com.jana.service;
 
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
 import main.java.com.jana.dtos.usuario.UsuarioUpdateDTO;
@@ -43,8 +44,7 @@ public class UsuarioService {
         Usuario usuario = findUserOrThrow(id);
         if (usuarioUpdateDTO.nome() != null ) usuario.setNome(usuarioUpdateDTO.nome());
         if (usuarioUpdateDTO.email() != null) usuario.setEmail(usuarioUpdateDTO.email());
-        if (usuarioUpdateDTO.perfil() != null) usuario.setPerfil(usuarioUpdateDTO.perfil());
-
+        if(usuarioUpdateDTO.senha() !=null) usuario.setSenhaHash(BCrypt.withDefaults().hashToString(12, usuarioUpdateDTO.senha().toCharArray()));
         usuarioDAO.updateUsuario(id,usuario);
     }
 
@@ -55,7 +55,7 @@ public class UsuarioService {
     private Usuario findUserOrThrow(Integer id) throws SQLException {
        Usuario usuario = usuarioDAO.findUsuarioById(id);
        if(usuario==null){
-           throw new UsuarioNaoEncontradoException("Usuario com id: " + id + "não encontrado!");
+           throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " não encontrado!");
        }
        return usuario;
     }

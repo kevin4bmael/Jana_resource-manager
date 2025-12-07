@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.usuario.UsuarioUpdateDTO;
 import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
-import main.java.com.jana.security.TokenService;
 import main.java.com.jana.service.UsuarioService;
+import main.java.com.jana.utils.TokenUtils;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,31 +16,31 @@ public class UsuarioController extends HttpServlet {
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
     private final Gson gson = new Gson();
 
-
-    private String extrairToken(HttpServletRequest req) {
-        String header = req.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
-            return null;
-        }
-        return header.substring(7);
-    }
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             resp.setContentType("application/json");
-            String token = extrairToken(req);
-            if (token == null) {
+
+
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 resp.getWriter().write("Token ausente ou inválido");
                 return;
             }
 
-            Long userId = TokenService.extractUserIdFromToken(token);
+            String listarTodos = req.getParameter("all");
 
+            if (listarTodos != null && listarTodos.equals("true")) {
 
-            resp.getWriter().write(gson.toJson(usuarioService.getUsuario(userId.intValue())));
-            resp.setStatus(HttpServletResponse.SC_OK);
+                String jsonTodos = gson.toJson(usuarioService.getAllUsuarios());
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write(jsonTodos);
+            } else {
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write(gson.toJson(usuarioService.getUsuario(userId)));
+            }
 
         } catch (UsuarioNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -54,20 +54,21 @@ public class UsuarioController extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            String token = extrairToken(req);
-            if (token == null) {
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 resp.getWriter().write("Token ausente ou inválido");
                 return;
             }
 
-            Long userId = TokenService.extractUserIdFromToken(token);
             UsuarioUpdateDTO dto = gson.fromJson(req.getReader(), UsuarioUpdateDTO.class);
 
-            usuarioService.updateUsuario(userId.intValue(), dto);
+            usuarioService.updateUsuario(userId, dto);
 
+            resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write("Usuário atualizado com sucesso");
+
         } catch (UsuarioNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(e.getMessage());
@@ -80,18 +81,18 @@ public class UsuarioController extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            String token = extrairToken(req);
-            if (token == null) {
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 resp.getWriter().write("Token ausente ou inválido");
                 return;
             }
+            usuarioService.deleteUsuario(userId);
 
-            Long userId = TokenService.extractUserIdFromToken(token);
-            usuarioService.deleteUsuario(userId.intValue());
-
+            resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write("Usuário deletado com sucesso");
+
         } catch (UsuarioNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(e.getMessage());

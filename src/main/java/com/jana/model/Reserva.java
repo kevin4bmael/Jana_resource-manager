@@ -2,11 +2,10 @@ package main.java.com.jana.model;
 
 import main.java.com.jana.model.enums.Periodo;
 
-import java.sql.Time;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 import java.time.LocalTime; // Substituindo java.sql.Time
-import java.util.Date;
+
 
 public class Reserva {
 
@@ -71,11 +70,11 @@ public class Reserva {
         this.localId = localId;
     }
 
-    public Date getDataReservada() {
+    public LocalDate getDataReservada() {
         return dataReservada;
     }
 
-    public void setDataReservada(Date dataReservada) {
+    public void setDataReservada(LocalDate dataReservada) {
         this.dataReservada = dataReservada;
     }
 
@@ -103,11 +102,11 @@ public class Reserva {
         this.horaRetirada = horaRetirada;
     }
 
-    public Time getHoraEntrega() {
+    public LocalTime getHoraEntrega() {
         return horaEntrega;
     }
 
-    public void setHoraEntrega(Time horaEntrega) {
+    public void setHoraEntrega(LocalTime horaEntrega) {
         this.horaEntrega = horaEntrega;
     }
 }

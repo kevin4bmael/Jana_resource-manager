@@ -1,45 +1,77 @@
 package main.java.com.jana.controller;
 
-import main.java.com.jana.dtos.registro.RegistroDTO;
+import main.java.com.jana.dtos.registro.*;
 import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.service.RegistroService;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @WebServlet("/registro")
 public class RegistroController extends HttpServlet {
 
-    private RegistroService registroService = new RegistroService();
-    private Gson gson = new Gson();
+    private final RegistroService registroService;
+    private final Gson gson;
+
+    public RegistroController() {
+        this.registroService = new RegistroService();
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new TypeAdapter<LocalDateTime>() {
+                    @Override
+                    public void write(JsonWriter out, LocalDateTime value) throws IOException {
+                        if (value != null) {
+                            out.value(value.toString());
+                        } else {
+                            out.nullValue();
+                        }
+                    }
+                    @Override
+                    public LocalDateTime read(JsonReader in) throws IOException {
+                        return LocalDateTime.parse(in.nextString());
+                    }
+                })
+                .create();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String acao = request.getParameter("acao");
-        if (acao == null) {
-            acao = "listar";
-        }
+        if (acao == null) acao = "listar";
 
         try {
-            if ("listar".equals(acao)) {
-                listar(request, response);
-            } else if ("listarPorUsuario".equals(acao)) {
-                listarPorUsuario(request, response);
-            } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
+            switch (acao) {
+                case "listar":
+                    listarTodos(request, response);
+                    break;
+                case "listarPorUsuario":
+                    listarPorUsuario(request, response);
+                    break;
+                case "listarPendentes":
+                    listarPendentes(request, response);
+                    break;
+                case "listarHistorico":
+                    listarHistorico(request, response);
+                    break;
+                default:
+                    enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro de banco de dados.");
+        } catch (Exception e) {
+            enviarErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -48,67 +80,103 @@ public class RegistroController extends HttpServlet {
             throws ServletException, IOException {
 
         String acao = request.getParameter("acao");
+        if (acao == null) {
+            enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação obrigatória");
+            return;
+        }
 
         try {
-            if ("devolver".equals(acao)) {
-                devolver(request, response);
-            } else if ("retirar".equals(acao)) {
-                retirar(request, response);
-            } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
+            switch (acao) {
+                case "retirar":
+                    registrarRetirada(request, response);
+                    break;
+                case "devolver":
+                    registrarDevolucao(request, response);
+                    break;
+                default:
+                    enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
             }
-        } catch (BusinessException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write(e.getMessage());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro de banco de dados.");
+        } catch (Exception e) {
+            enviarErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
-    private void listar(HttpServletRequest request, HttpServletResponse response)
+    private void listarTodos(HttpServletRequest request, HttpServletResponse response)
             throws IOException, SQLException {
-
-        List<RegistroDTO> registros = registroService.listarTodosDTO();
-        String json = gson.toJson(registros);
-
-        response.setContentType("application/json");
-        response.getWriter().write(json);
+        List<RegistroResponseDTO> lista = registroService.listarTodosDTO();
+        enviarJSON(response, lista);
     }
 
     private void listarPorUsuario(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, BusinessException {
+        String idParam = request.getParameter("userId");
+        if (idParam == null) throw new BusinessException("userId obrigatório");
+
+        List<RegistroResponseDTO> lista = registroService.listarPorUsuarioDTO(Integer.parseInt(idParam));
+        enviarJSON(response, lista);
+    }
+
+    private void listarPendentes(HttpServletRequest request, HttpServletResponse response)
             throws IOException, SQLException {
+        List<RegistroPendenteDto> lista = registroService.listarPendentes();
+        enviarJSON(response, lista);
+    }
 
-        int userId = Integer.parseInt(request.getParameter("userId"));
+    private void listarHistorico(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException {
+        List<RegistroHistoricoDTO> lista = registroService.listarHistoricoCompleto();
+        enviarJSON(response, lista);
+    }
 
-        List<RegistroDTO> registros = registroService.listarPorUsuarioDTO(userId);
-        String json = gson.toJson(registros);
+    private void registrarRetirada(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, BusinessException, SQLException {
+        String json = lerBody(request);
+        RegistroInsertDTO dto = gson.fromJson(json, RegistroInsertDTO.class);
 
+        if (dto == null) throw new BusinessException("JSON inválido");
+
+        registroService.registrarRetirada(dto);
+        enviarSucesso(response, "Retirada realizada com sucesso");
+    }
+
+    private void registrarDevolucao(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, BusinessException, SQLException {
+        String json = lerBody(request);
+        RegistroUpdateDTO dto = gson.fromJson(json, RegistroUpdateDTO.class);
+
+        if (dto == null) throw new BusinessException("JSON inválido");
+
+        registroService.registrarDevolucao(dto);
+        enviarSucesso(response, "Devolução realizada com sucesso");
+    }
+
+    private String lerBody(HttpServletRequest request) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = request.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+        return sb.toString();
+    }
+
+    private void enviarJSON(HttpServletResponse response, Object objeto) throws IOException {
         response.setContentType("application/json");
-        response.getWriter().write(json);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(gson.toJson(objeto));
     }
 
-    private void retirar(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, BusinessException, SQLException {
-
-        int reserveId = Integer.parseInt(request.getParameter("reserveId"));   // pode ser 0 se não usar reserva
-        int userId = Integer.parseInt(request.getParameter("userId"));
-        int resourceId = Integer.parseInt(request.getParameter("resourceId"));
-
-        registroService.registrarRetirada(reserveId, userId, resourceId);
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write("Retirada registrada com sucesso.");
+    private void enviarSucesso(HttpServletResponse response, String msg) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"success\": true, \"message\": \"%s\"}", msg));
     }
 
-    private void devolver(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, BusinessException, SQLException {
-
-        int registroId = Integer.parseInt(request.getParameter("registroId"));
-
-        registroService.registrarDevolucao(registroId);
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write("Devolução registrada com sucesso.");
+    private void enviarErro(HttpServletResponse response, int status, String msg) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"success\": false, \"error\": \"%s\"}", msg.replace("\"", "'")));
     }
 }

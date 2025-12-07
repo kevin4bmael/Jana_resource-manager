@@ -33,10 +33,20 @@ public class AuthService {
         usuarioDAO.saveUsuario(usuario);
     }
 
-    public boolean login(UsuarioLoginDTO dto) throws SQLException {
+    public Usuario login(UsuarioLoginDTO dto) throws SQLException {
         Usuario usuario = usuarioDAO.findByEmail(dto.email());
-        if (usuario == null) return false;
 
-        return BCrypt.verifyer().verify(dto.senha().toCharArray(), usuario.getSenhaHash()).verified;
+        if (usuario == null) {
+            return null;
+        }
+
+
+        boolean senhaCorreta = BCrypt.verifyer().verify(dto.senha().toCharArray(), usuario.getSenhaHash()).verified;
+
+        if (senhaCorreta) {
+            return usuario;
+        }
+
+        return null;
     }
 }

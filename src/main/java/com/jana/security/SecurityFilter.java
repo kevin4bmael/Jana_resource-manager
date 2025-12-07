@@ -1,56 +1,73 @@
 package main.java.com.jana.security;
 
+import com.google.gson.Gson;
+import main.java.com.jana.utils.TokenUtils;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
-
-@WebFilter
+@WebFilter("/*")
 public class SecurityFilter implements Filter {
-    private final TokenService tokenService;
 
-    public SecurityFilter() {
-        this.tokenService = new TokenService();
-    }
+    private final TokenService tokenService = new TokenService();
 
+    private final Gson gson = new Gson();
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
+    public void init(FilterConfig filterConfig) {}
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        String token = extractToken(request);
-        if(token!=null) {
+
+
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
+
+        String path = request.getRequestURI();
+
+
+        if (path.contains("/auth/login") || path.contains("/auth/register")) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
+        String token = TokenUtils.extrairToken(request);
+
+        if (token != null) {
             try {
                 String email = tokenService.verifyAndExtractToken(token);
-                request.setAttribute("email", email);
+                request.setAttribute("userEmail", email);
                 filterChain.doFilter(servletRequest, servletResponse);
             } catch (Exception e) {
-                HttpServletResponse resp = (HttpServletResponse) servletResponse;
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write("Token inválido ou ausente");
+
+                enviarErroJson(response, HttpServletResponse.SC_UNAUTHORIZED, "Token inválido ou expirado");
             }
+        } else {
+            enviarErroJson(response, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente");
         }
     }
 
     @Override
-    public void destroy() {
+    public void destroy() {}
 
-    }
+    private void enviarErroJson(HttpServletResponse response, int status, String mensagem) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        String json = gson.toJson(Collections.singletonMap("erro", mensagem));
 
-
-    private String extractToken(HttpServletRequest request){
-        String authHeader = request.getHeader("Authorization");
-        if(authHeader ==null){
-            return null;
-        }
-        return authHeader.replaceAll("Bearer ", "");
+        response.getWriter().write(json);
     }
 }

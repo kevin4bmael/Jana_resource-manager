@@ -73,4 +73,6 @@ public class Usuario {
         this.senhaHash = senhaHash;
         this.perfil = perfil;
     }
+    public Usuario() {}
+
 }

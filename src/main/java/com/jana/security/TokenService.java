@@ -11,45 +11,48 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class TokenService {
-    private final String secret = System.getenv("SECRET_KEY");
-    private final SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
+
+    private static final String SECRET_STRING = System.getenv("SECRET_KEY") != null ?
+            System.getenv("SECRET_KEY") : "minha_chave_secreta_super_segura_123456";
+
+    private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
 
     public String generateToken(Usuario usuario){
-        //3 horas de duracao
         return Jwts.builder()
                 .subject(usuario.getEmail())
-                .claim("id",usuario.getUserId())
+                .claim("id", usuario.getUserId())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(3, ChronoUnit.HOURS)))
-                .signWith(key)
+                .signWith(KEY)
                 .compact();
     }
 
     public String verifyAndExtractToken(String token){
         try {
             Claims claims = Jwts.parser()
-                    .verifyWith(key)
+                    .verifyWith(KEY)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
 
-            return claims.getSubject();
+            return claims.getSubject(); // Retorna o email
         } catch (Exception e) {
-            throw new RuntimeException("Token inválido: " + e.getMessage());
+            throw new RuntimeException("Token inválido");
         }
     }
+
     public static Long extractUserIdFromToken(String token) {
         try {
-            TokenService tokenService = new TokenService();
             Claims claims = Jwts.parser()
-                    .verifyWith(tokenService.key)
+                    .verifyWith(KEY)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+
 
             return claims.get("id", Long.class);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao extrair ID do token: " + e.getMessage());
+            throw new RuntimeException("Erro ao extrair ID: " + e.getMessage());
         }
     }
 }

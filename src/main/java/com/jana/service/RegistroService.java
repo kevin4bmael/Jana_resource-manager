@@ -1,13 +1,17 @@
 package main.java.com.jana.service;
 
 import main.java.com.jana.dao.RegistroDAO;
-import main.java.com.jana.dtos.registro.RegistroDTO;
+import main.java.com.jana.dtos.registro.RegistroHistoricoDTO;
+import main.java.com.jana.dtos.registro.RegistroInsertDTO;
+import main.java.com.jana.dtos.registro.RegistroPendenteDto;
+import main.java.com.jana.dtos.registro.RegistroResponseDTO;
+import main.java.com.jana.dtos.registro.RegistroUpdateDTO;
 import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.model.Registro;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class RegistroService {
@@ -18,70 +22,93 @@ public class RegistroService {
         this.registroDAO = new RegistroDAO();
     }
 
-    
-    public void registrarRetirada(int reserveId, int userId, int resourceId)
-            throws BusinessException, SQLException {
-
-        if (userId <= 0 || resourceId <= 0) {
-            throw new BusinessException("Usuário e recurso são obrigatórios para retirada.");
+    public void registrarRetirada(RegistroInsertDTO dto) throws BusinessException, SQLException {
+        if (dto.userId() <= 0 || dto.recursoId() <= 0 || dto.localId() <= 0) {
+            throw new BusinessException("Usuário, recurso e local são obrigatórios para a retirada.");
         }
 
         Registro r = new Registro();
-        r.setReserveId(reserveId);      
-        r.setUserId(userId);
-        r.setResourceId(resourceId);
-        r.setDataRetirada(new Date());
-        r.setDataDevolucao(null);
+        r.setReservaId(dto.reservaId());
+        r.setUserId(dto.userId());
+        r.setResourceId(dto.recursoId());
+        r.setLocalId(dto.localId());
+        r.setMovimentacaoId(dto.movimentacaoId());
+
+        r.setNome(dto.nome());
+        r.setItem(dto.item());
+        r.setNumero(dto.numero());
+        r.setAno(dto.ano());
+        r.setTurma(dto.turma());
+        r.setPeriodo(dto.periodo());
+
+        r.setMomentoRetirada(LocalDateTime.now());
+        r.setMomentoDevolucao(null);
+        r.setStatusRecurso(dto.statusRecurso() != null ? dto.statusRecurso() : "Ocupado");
+        r.setStatusEntrega(dto.statusEntrega() != null ? dto.statusEntrega() : "Ausente");
 
         registroDAO.criar(r);
     }
 
-    public void registrarDevolucao(int registroId) throws BusinessException, SQLException {
+    public void registrarDevolucao(RegistroUpdateDTO dto) throws BusinessException, SQLException {
+        Registro r = registroDAO.buscarPorId(dto.registroId());
 
-        Registro r = registroDAO.buscarPorId(registroId);
         if (r == null) {
             throw new BusinessException("Registro não encontrado.");
         }
 
-        if (r.getDataDevolucao() != null) {
-            throw new BusinessException("Este registro já está finalizado (já possui devolução).");
+        if (r.getMomentoDevolucao() != null) {
+            throw new BusinessException("Este registro já está finalizado.");
         }
 
-        r.setDataDevolucao(new Date());
-        registroDAO.atualizar(r);
+        String statusFinal = (dto.statusEntrega() != null && !dto.statusEntrega().isEmpty())
+                ? dto.statusEntrega()
+                : "Entregue";
+
+        registroDAO.registrarDevolucao(dto.registroId(), statusFinal);
     }
 
-    public List<RegistroDTO> listarTodosDTO() throws SQLException {
+    public List<RegistroResponseDTO> listarTodosDTO() throws SQLException {
         List<Registro> registros = registroDAO.listarTodos();
         return toDTOList(registros);
     }
 
-    public List<RegistroDTO> listarPorUsuarioDTO(int userId) throws SQLException {
+    public List<RegistroResponseDTO> listarPorUsuarioDTO(int userId) throws SQLException {
         List<Registro> registros = registroDAO.listarPorUsuario(userId);
         return toDTOList(registros);
     }
 
-    private List<RegistroDTO> toDTOList(List<Registro> registros) {
-        List<RegistroDTO> dtos = new ArrayList<>();
+    public List<RegistroPendenteDto> listarPendentes() throws SQLException {
+        return registroDAO.listarPendentes();
+    }
+
+    public List<RegistroHistoricoDTO> listarHistoricoCompleto() throws SQLException {
+        return registroDAO.listarHistorico();
+    }
+
+    private List<RegistroResponseDTO> toDTOList(List<Registro> registros) {
+        List<RegistroResponseDTO> dtos = new ArrayList<>();
 
         for (Registro r : registros) {
-            RegistroDTO dto = new RegistroDTO();
-            dto.setRegistroId(r.getRegistroId());
-            dto.setReserveId(r.getReserveId());
-            dto.setUserId(r.getUserId());
-            dto.setResourceId(r.getResourceId());
-            dto.setDataRetirada(r.getDataRetirada());
-            dto.setDataDevolucao(r.getDataDevolucao());
-
-            if (r.getDataDevolucao() == null) {
-                dto.setStatusMovimentacao("EM_USO");
-            } else {
-                dto.setStatusMovimentacao("FINALIZADO");
-            }
-
+            RegistroResponseDTO dto = new RegistroResponseDTO(
+                    r.getRegistroId(),
+                    r.getReservaId(),
+                    r.getUserId(),
+                    r.getResourceId(),
+                    r.getLocalId(),
+                    r.getMovimentacaoId(),
+                    r.getNome(),
+                    r.getItem(),
+                    r.getNumero(),
+                    r.getAno(),
+                    r.getTurma(),
+                    r.getPeriodo(),
+                    r.getMomentoRetirada(),
+                    r.getMomentoDevolucao(),
+                    r.getStatusRecurso(),
+                    r.getStatusEntrega()
+            );
             dtos.add(dto);
         }
-
         return dtos;
     }
 }

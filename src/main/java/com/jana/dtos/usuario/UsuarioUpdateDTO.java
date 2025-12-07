@@ -5,6 +5,5 @@ import main.java.com.jana.model.enums.Perfil;
 public record UsuarioUpdateDTO(
         String nome,
         String email,
-        String senha,
-        Perfil perfil
+        String senha
 ) {}
