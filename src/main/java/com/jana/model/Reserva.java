@@ -3,6 +3,8 @@ package main.java.com.jana.model;
 import main.java.com.jana.model.enums.Periodo;
 
 import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime; // Substituindo java.sql.Time
 import java.util.Date;
 
@@ -12,34 +14,20 @@ public class Reserva {
     private Integer userId;
     private Integer recursoId;
     private Integer localId;
-
-    private Date dataReservada;
+    private LocalDate dataReservada;
     private LocalTime horaRetirada;
-    private Time horaEntrega;
-
+    private LocalTime horaEntrega;
     private String observacao;
     private Periodo periodo;
 
     public Reserva() {
     }
 
-    public Reserva(Integer reservaId, Integer userId, Integer recursoId, Integer localId,
-                   Date dataReservada, String observacao, Periodo periodo,
-                   LocalTime horaRetirada, Time horaEntrega) {
-        this.reservaId = reservaId;
-        this.userId = userId;
-        this.recursoId = recursoId;
-        this.localId = localId;
-        this.dataReservada = dataReservada;
-        this.observacao = observacao;
-        this.periodo = periodo;
-        this.horaRetirada = horaRetirada;
-        this.horaEntrega = horaEntrega;
-    }
+
 
     public Reserva(Integer userId, Integer recursoId, Integer localId,
-                   Date dataReservada, String observacao, Periodo periodo,
-                   LocalTime horaRetirada, Time horaEntrega) {
+                   LocalDate dataReservada, String observacao, Periodo periodo,
+                   LocalTime horaRetirada, LocalTime horaEntrega) {
         this.userId = userId;
         this.recursoId = recursoId;
         this.localId = localId;

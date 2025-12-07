@@ -4,7 +4,6 @@ import main.java.com.jana.dao.LocalDAO;
 import main.java.com.jana.dtos.local.LocalRegisterDTO;
 import main.java.com.jana.dtos.local.LocalResponseDTO;
 import main.java.com.jana.dtos.local.LocalUpdateDTO;
-import main.java.com.jana.exceptions.LocalNaoEncontradoException;
 import main.java.com.jana.model.Local;
 import main.java.com.jana.model.enums.TipoLocal;
 

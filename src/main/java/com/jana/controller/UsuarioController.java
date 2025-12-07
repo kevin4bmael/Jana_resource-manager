@@ -3,7 +3,7 @@ package main.java.com.jana.controller;
 import com.google.gson.Gson;
 import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.usuario.UsuarioUpdateDTO;
-import main.java.com.jana.exceptions.UsuarioNaoEncontradoException;
+import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
 import main.java.com.jana.security.TokenService;
 import main.java.com.jana.service.UsuarioService;
 

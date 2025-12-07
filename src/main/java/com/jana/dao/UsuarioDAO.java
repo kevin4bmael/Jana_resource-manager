@@ -1,5 +1,4 @@
 package main.java.com.jana.dao;
-import main.java.com.jana.exceptions.UsuarioNaoEncontradoException;
 import main.java.com.jana.model.Usuario;
 import main.java.com.jana.model.enums.Perfil;
 import main.java.com.jana.utils.Conexao;
@@ -20,7 +19,10 @@ public class UsuarioDAO {
 
             preparedStatement.setInt(1, usuarioID);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                return resultSetToUsuario(resultSet);
+                if (resultSet.next()) {
+                    return resultSetToUsuario(resultSet);
+                }
+                return null;
             }
         }
     }
@@ -30,26 +32,31 @@ public class UsuarioDAO {
         try(Connection connection = Conexao.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ResultSet resultSet = preparedStatement.executeQuery()){
-            while(resultSet.next()){
+            while (resultSet.next()) {
                 usuarios.add(resultSetToUsuario(resultSet));
             }
         }
         return usuarios;
     }
-    public boolean deleteById(Integer id) throws SQLException{
+    public void deleteById(Integer id) throws SQLException{
         String sql = "delete from usuarios where id= ?";
         try(Connection connection = Conexao.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)){
             preparedStatement.setInt(1, id);
-            int result = preparedStatement.executeUpdate();
-            if(result==0){
-                return false;
-            }
+            preparedStatement.executeUpdate();
         }
-        return true;
     }
 
+    public void delete(Usuario usuario) throws SQLException {
+        String sql = "DELETE FROM usuarios WHERE id = ?";
 
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, usuario.getUserId());
+            preparedStatement.executeUpdate();
+        }
+    }
     public void saveUsuario(Usuario usuario) throws SQLException{
         int matricula= usuario.getMatricula();
         String nome = usuario.getNome();
@@ -126,16 +133,14 @@ public class UsuarioDAO {
     }
     //método auxiiar
     private Usuario resultSetToUsuario(ResultSet resultSet) throws SQLException {
-        if(!resultSet.next()){
-            throw new UsuarioNaoEncontradoException("Usuario não encontrado!");
-        }
         int userId = resultSet.getInt("id");
-        int matricula= resultSet.getInt("matricula");
+        int matricula = resultSet.getInt("matricula");
         String nome = resultSet.getString("nome");
         String email = resultSet.getString("email");
         String senhaHash = resultSet.getString("senhaHash");
-        Perfil perfil =Perfil.valueOf(resultSet.getString("perfil"));
-        return new Usuario(userId,matricula,nome,email,senhaHash,perfil);
+        Perfil perfil = Perfil.valueOf(resultSet.getString("perfil"));
+
+        return new Usuario(userId, matricula, nome, email, senhaHash, perfil);
     }
 
 }

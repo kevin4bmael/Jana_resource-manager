@@ -4,7 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.usuario.UsuarioLoginDTO;
 import main.java.com.jana.dtos.usuario.UsuarioRegisterDTO;
-import main.java.com.jana.exceptions.EmailJaExisteException;
+import main.java.com.jana.exceptions.usuario.EmailJaExisteException;
 import main.java.com.jana.model.Usuario;
 
 import java.sql.SQLException;

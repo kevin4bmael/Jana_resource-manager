@@ -5,9 +5,8 @@ import main.java.com.jana.dtos.reserva.ReservaRegisterDTO;
 import main.java.com.jana.dtos.reserva.ReservaResponseDTO;
 import main.java.com.jana.dtos.reserva.ReservaUpdateDTO;
 import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.exceptions.ReservaNaoEncontradaException;
+import main.java.com.jana.exceptions.reserva.ReservaNaoEncontradaException;
 import main.java.com.jana.model.Reserva;
-import main.java.com.jana.model.enums.Periodo;
 
 import java.sql.SQLException;
 import java.util.List;

@@ -4,7 +4,6 @@ import main.java.com.jana.dao.RecursoDAO;
 import main.java.com.jana.dtos.recurso.RecursoRegisterDTO;
 import main.java.com.jana.dtos.recurso.RecursoResponseDTO;
 import main.java.com.jana.dtos.recurso.RecursoUpdateDTO;
-import main.java.com.jana.exceptions.RecursoNaoEncontradoException;
 import main.java.com.jana.model.Recurso;
 
 import java.sql.SQLException;

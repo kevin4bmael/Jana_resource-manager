@@ -1,6 +1,6 @@
 package main.java.com.jana.dao;
 
-import main.java.com.jana.exceptions.ReservaNaoEncontradaException;
+import main.java.com.jana.exceptions.reserva.ReservaNaoEncontradaException;
 import main.java.com.jana.model.Reserva;
 import main.java.com.jana.model.enums.Periodo;
 import main.java.com.jana.utils.Conexao;

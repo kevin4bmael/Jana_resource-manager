@@ -1,6 +1,6 @@
 package main.java.com.jana.dao;
 
-import main.java.com.jana.exceptions.RecursoNaoEncontradoException;
+import main.java.com.jana.exceptions.recurso.RecursoNaoEncontradoException;
 import main.java.com.jana.model.Recurso;
 import main.java.com.jana.model.enums.Funcional;
 import main.java.com.jana.utils.Conexao;

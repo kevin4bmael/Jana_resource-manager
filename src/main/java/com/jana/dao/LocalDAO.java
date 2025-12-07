@@ -1,6 +1,6 @@
 package main.java.com.jana.dao;
 
-import main.java.com.jana.exceptions.LocalNaoEncontradoException;
+import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
 import main.java.com.jana.model.Local;
 import main.java.com.jana.model.enums.Ano;
 import main.java.com.jana.model.enums.TipoLocal;

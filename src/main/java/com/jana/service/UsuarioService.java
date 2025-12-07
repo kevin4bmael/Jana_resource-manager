@@ -4,7 +4,7 @@ package main.java.com.jana.service;
 import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
 import main.java.com.jana.dtos.usuario.UsuarioUpdateDTO;
-import main.java.com.jana.exceptions.UsuarioNaoEncontradoException;
+import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
 import main.java.com.jana.model.Usuario;
 
 import java.sql.SQLException;
@@ -18,8 +18,7 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO getUsuario(Integer id) throws SQLException {
-        Usuario usuario = usuarioDAO.findUsuarioById(id);
-        if (usuario != null) {
+        Usuario usuario = findUserOrThrow(id);
             return new UsuarioResponseDTO(
                     usuario.getUserId(),
                     usuario.getMatricula(),
@@ -27,8 +26,6 @@ public class UsuarioService {
                     usuario.getEmail(),
                     usuario.getPerfil()
             );
-        }
-        throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " nao encontrado!");
     }
 
     public List<UsuarioResponseDTO> getAllUsuarios() throws SQLException {
@@ -43,11 +40,8 @@ public class UsuarioService {
     }
 
     public void updateUsuario(Integer id, UsuarioUpdateDTO usuarioUpdateDTO) throws SQLException {
-        Usuario usuario = usuarioDAO.findUsuarioById(id);
-        if (usuario == null) {
-            throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " nao encontrado!");
-        }
-        if (usuarioUpdateDTO.nome() != null) usuario.setNome(usuarioUpdateDTO.nome());
+        Usuario usuario = findUserOrThrow(id);
+        if (usuarioUpdateDTO.nome() != null ) usuario.setNome(usuarioUpdateDTO.nome());
         if (usuarioUpdateDTO.email() != null) usuario.setEmail(usuarioUpdateDTO.email());
         if (usuarioUpdateDTO.perfil() != null) usuario.setPerfil(usuarioUpdateDTO.perfil());
 
@@ -55,10 +49,14 @@ public class UsuarioService {
     }
 
     public void deleteUsuario(Integer id) throws SQLException {
-        Usuario usuario = usuarioDAO.findUsuarioById(id);
-        if (usuario == null) {
-            throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " nao encontrado!");
-        }
-        usuarioDAO.deleteById(id);
+        Usuario usuario = findUserOrThrow(id);
+        usuarioDAO.delete(usuario);
+    }
+    private Usuario findUserOrThrow(Integer id) throws SQLException {
+       Usuario usuario = usuarioDAO.findUsuarioById(id);
+       if(usuario==null){
+           throw new UsuarioNaoEncontradoException("Usuario com id: " + id + "não encontrado!");
+       }
+       return usuario;
     }
 }
