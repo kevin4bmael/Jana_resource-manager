@@ -30,10 +30,8 @@ public class LocalService {
                 .collect(Collectors.toList());
     }
 
-     @param dto 
-     @param userId
-     
-    public void createLocal(LocalRegisterDTO dto, Integer userId) throws SQLException {
+
+    public LocalResponseDTO createLocal(LocalRegisterDTO dto, Integer userId) throws SQLException {
         Local novoLocal = new Local(
                 userId,
                 dto.local(),
@@ -47,13 +45,13 @@ public class LocalService {
         }
 
         localDAO.saveLocal(novoLocal);
+
+        return mapToLocalResponseDTO(novoLocal);
     }
 
-     @param id 
-     @param dto 
-  
-    public void updateLocal(Integer id, LocalUpdateDTO dto) throws SQLException {
-     
+
+
+    public LocalResponseDTO updateLocal(Integer id, LocalUpdateDTO dto) throws SQLException {
         Local local = localDAO.findLocalById(id);
 
         if (dto.local() != null) {
@@ -72,6 +70,8 @@ public class LocalService {
         }
 
         localDAO.updateLocal(local);
+
+        return mapToLocalResponseDTO(local);
     }
 
     public void deleteLocal(Integer id) throws SQLException {

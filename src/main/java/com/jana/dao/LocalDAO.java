@@ -7,11 +7,7 @@ import main.java.com.jana.model.enums.TipoLocal;
 import main.java.com.jana.model.enums.Turma;
 import main.java.com.jana.utils.Conexao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types; 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,34 +61,40 @@ public class LocalDAO {
 
     public void saveLocal(Local local) throws SQLException {
         String sql = "INSERT INTO local (userId, local, ano, turma) VALUES (?, ?, ?, ?)";
-        
-        try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            preparedStatement.setInt(1, local.getUserId());
-            preparedStatement.setString(2, local.getLocal().toString());
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, local.getUserId());
+            ps.setString(2, local.getLocal().toString());
+
             if (local.getAno() != null) {
-                preparedStatement.setString(3, local.getAno().toString());
+                ps.setString(3, local.getAno().toString());
             } else {
-                preparedStatement.setNull(3, Types.VARCHAR);
+                ps.setNull(3, Types.VARCHAR);
             }
 
             if (local.getTurma() != null) {
-                preparedStatement.setString(4, local.getTurma().toString());
+                ps.setString(4, local.getTurma().toString());
             } else {
-                preparedStatement.setNull(4, Types.VARCHAR);
+                ps.setNull(4, Types.VARCHAR);
             }
 
-            int result = preparedStatement.executeUpdate();
+            int result = ps.executeUpdate();
             if (result == 0) {
                 throw new SQLException("Falha ao salvar local.");
+            }
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    local.setLocalId(rs.getInt(1));
+                }
             }
         }
     }
 
     public void updateLocal(Local local) throws SQLException {
         String sql = "UPDATE local SET userId = ?, local = ?, ano = ?, turma = ? WHERE localId = ?";
-        
+
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -111,7 +113,7 @@ public class LocalDAO {
                 preparedStatement.setNull(4, Types.VARCHAR);
             }
 
-            preparedStatement.setInt(5, local.getLocalId()); 
+            preparedStatement.setInt(5, local.getLocalId());
 
             int result = preparedStatement.executeUpdate();
             if (result == 0) {

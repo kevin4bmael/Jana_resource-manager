@@ -6,13 +6,16 @@ import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.local.LocalRegisterDTO;
 import main.java.com.jana.dtos.local.LocalResponseDTO;
 import main.java.com.jana.dtos.local.LocalUpdateDTO;
+import main.java.com.jana.dtos.local.MensagemResponse;
 import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
+import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
 import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
 import main.java.com.jana.model.enums.Perfil;
 import main.java.com.jana.security.TokenService;
 import main.java.com.jana.service.LocalService;
 import main.java.com.jana.service.UsuarioService;
+import main.java.com.jana.utils.TokenUtils;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -30,194 +33,219 @@ public class LocalController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+            // Validar token usando TokenUtils
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
-
-            TokenService.extractUserIdFromToken(token);
 
             Integer id = extrairIdDaUrl(req);
 
             if (id == null) {
+                // Listar todos os locais
                 List<LocalResponseDTO> locais = localService.getAllLocais();
-                resp.getWriter().write(gson.toJson(locais));
+                enviarSucesso(resp, locais);
             } else {
+                // Buscar local específico
                 LocalResponseDTO local = localService.getLocal(id);
-                resp.getWriter().write(gson.toJson(local));
+                enviarSucesso(resp, local);
             }
-            resp.setStatus(HttpServletResponse.SC_OK);
 
         } catch (LocalNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
-        } catch (Exception e) { 
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write(gson.toJson("Token inválido ou erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+            // Validar token e obter usuário
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
 
-            Long userId = TokenService.extractUserIdFromToken(token);
-            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
-            
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+            // Verificar se é administrador
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
+            // Ler DTO do body
             LocalRegisterDTO dto = gson.fromJson(req.getReader(), LocalRegisterDTO.class);
 
-            localService.createLocal(dto, userId.intValue());
-            
-            resp.setStatus(HttpServletResponse.SC_CREATED);
-            resp.getWriter().write(gson.toJson("Local cadastrado com sucesso"));
+            // Criar local
+            LocalResponseDTO novoLocal = localService.createLocal(dto, userId);
+
+            // Retornar sucesso com o objeto criado
+            enviarSucesso(resp, HttpServletResponse.SC_CREATED, novoLocal);
 
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); 
-            resp.getWriter().write(gson.toJson("Usuário do token inválido."));
+            enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
+        } catch (BusinessException e) {
+            enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) { 
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
-                return;
-            }
-            
-            Long userId = TokenService.extractUserIdFromToken(token);
-            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
-            
-            if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
+            // Validar token e obter usuário
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
 
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+            // Verificar se é administrador
+            if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "Acesso negado. Requer perfil de Administrador.");
+                return;
+            }
+
+            // Extrair ID da URL
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(gson.toJson("ID do local ausente na URL."));
+                enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, "ID do local ausente na URL.");
                 return;
             }
 
+            // Ler DTO do body
             LocalUpdateDTO dto = gson.fromJson(req.getReader(), LocalUpdateDTO.class);
 
-            localService.updateLocal(id, dto);
-            
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(gson.toJson("Local atualizado com sucesso"));
+            // Atualizar local
+            LocalResponseDTO localAtualizado = localService.updateLocal(id, dto);
+
+            // Retornar sucesso com o objeto atualizado
+            enviarSucesso(resp, localAtualizado);
 
         } catch (LocalNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); 
-            resp.getWriter().write(gson.toJson("Usuário do token inválido."));
+            enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
+        } catch (BusinessException e) {
+            enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
-                return;
-            }
-            
-            Long userId = TokenService.extractUserIdFromToken(token);
-            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
-            
-            if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
+            // Validar token e obter usuário
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
 
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+            // Verificar se é administrador
+            if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "Acesso negado. Requer perfil de Administrador.");
+                return;
+            }
+
+            // Extrair ID da URL
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(gson.toJson("ID do local ausente na URL."));
+                enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, "ID do local ausente na URL.");
                 return;
             }
 
+            // Deletar local
             localService.deleteLocal(id);
-            
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(gson.toJson("Local deletado com sucesso"));
 
-        } catch (LocalNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
+            // Retornar mensagem de sucesso
+            enviarMensagem(resp, HttpServletResponse.SC_OK, "Local deletado com sucesso");
+
+        } catch (LocalNaoEncontradoException | BusinessException e) {
+            enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); 
-            resp.getWriter().write(gson.toJson("Usuário do token inválido."));
+            enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private String extrairToken(HttpServletRequest req) {
-        String header = req.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+    private Integer extrairIdDaUrl(HttpServletRequest req) {
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo == null || pathInfo.equals("/")) {
             return null;
         }
-        return header.substring(7);
-    }
 
-    private Integer extrairIdDaUrl(HttpServletRequest req) {
-        String pathInfo = req.getPathInfo(); 
-        
-        if (pathInfo == null || pathInfo.equals("/")) {
-            return null; 
-        }
-        
         try {
             return Integer.parseInt(pathInfo.substring(1));
         } catch (NumberFormatException e) {
-            return null; 
+            return null;
         }
+    }
+
+
+    private void configurarResponse(HttpServletResponse resp) {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+    }
+
+
+     // Envia resposta de sucesso com status 200
+
+    private void enviarSucesso(HttpServletResponse resp, Object data) throws IOException {
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.getWriter().write(gson.toJson(data));
+    }
+
+
+    private void enviarSucesso(HttpServletResponse resp, int status, Object data) throws IOException {
+        resp.setStatus(status);
+        resp.getWriter().write(gson.toJson(data));
+    }
+
+
+    private void enviarMensagem(HttpServletResponse resp, int status, String mensagem) throws IOException {
+        resp.setStatus(status);
+        resp.getWriter().write(gson.toJson(new MensagemResponse(true, mensagem)));
+    }
+
+    /**
+     * Envia mensagem de erro
+     */
+    private void enviarErro(HttpServletResponse resp, int status, String mensagem) throws IOException {
+        resp.setStatus(status);
+        resp.getWriter().write(gson.toJson(new MensagemResponse(false, mensagem)));
     }
 }

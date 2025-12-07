@@ -25,6 +25,9 @@ public class Local {
         this.ano = ano;
         this.turma = turma;
     }
+    public Local(){
+
+    }
 
     public int getLocalId() {
         return localId;
