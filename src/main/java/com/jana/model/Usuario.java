@@ -3,7 +3,7 @@ package main.java.com.jana.model;
 import main.java.com.jana.model.enums.Perfil;
 
 public class Usuario {
-    private int userId;
+    private Integer userId;
     private int matricula;
     private String nome;
     private String email;

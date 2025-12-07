@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UsuarioDAO {
+    private static final String FIND_BY_EMAIL_SQL = "SELECT * FROM usuario WHERE email = ?";
 
     public Usuario findUsuarioById(Integer usuarioID) throws SQLException {
         String sql = "select * from usuarios where id = ?";

@@ -31,13 +31,7 @@ public class UsuarioService {
 
     public List<UsuarioResponseDTO> getAllUsuarios() throws SQLException {
         return usuarioDAO.findAll().stream()
-                .map(usuario -> new UsuarioResponseDTO(
-                        usuario.getUserId(),
-                        usuario.getMatricula(),
-                        usuario.getNome(),
-                        usuario.getEmail(),
-                        usuario.getPerfil()))
-                .toList();
+                .map(this::toResponseDTO).toList();
     }
 
     public void updateUsuario(Integer id, UsuarioUpdateDTO usuarioUpdateDTO) throws SQLException {
@@ -48,6 +42,15 @@ public class UsuarioService {
         usuarioDAO.updateUsuario(id,usuario);
     }
 
+    public UsuarioResponseDTO findByEmail(String email) throws SQLException {
+        Usuario usuario = usuarioDAO.findByEmail(email);
+
+        if (usuario == null) {
+            throw new UsuarioNaoEncontradoException("Usuário não encontrado com email: " + email);
+        }
+
+        return toResponseDTO(usuario);
+    }
     public void deleteUsuario(Integer id) throws SQLException {
         Usuario usuario = findUserOrThrow(id);
         usuarioDAO.delete(usuario);
@@ -58,5 +61,14 @@ public class UsuarioService {
            throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " não encontrado!");
        }
        return usuario;
+    }
+    private UsuarioResponseDTO toResponseDTO(Usuario usuario) {
+        return new UsuarioResponseDTO(
+                usuario.getUserId(),
+                usuario.getMatricula(),
+                usuario.getNome(),
+                usuario.getEmail(),
+                usuario.getPerfil()
+        );
     }
 }

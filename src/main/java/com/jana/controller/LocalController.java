@@ -12,7 +12,6 @@ import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
 import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
 import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.security.TokenService;
 import main.java.com.jana.service.LocalService;
 import main.java.com.jana.service.UsuarioService;
 import main.java.com.jana.utils.TokenUtils;
@@ -241,9 +240,6 @@ public class LocalController extends HttpServlet {
         resp.getWriter().write(gson.toJson(new MensagemResponse(true, mensagem)));
     }
 
-    /**
-     * Envia mensagem de erro
-     */
     private void enviarErro(HttpServletResponse resp, int status, String mensagem) throws IOException {
         resp.setStatus(status);
         resp.getWriter().write(gson.toJson(new MensagemResponse(false, mensagem)));

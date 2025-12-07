@@ -2,17 +2,19 @@ package main.java.com.jana.controller;
 
 import com.google.gson.Gson;
 import main.java.com.jana.dao.RecursoDAO;
-import main.java.com.jana.dao.UsuarioDAO; 
+import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.recurso.RecursoRegisterDTO;
 import main.java.com.jana.dtos.recurso.RecursoResponseDTO;
 import main.java.com.jana.dtos.recurso.RecursoUpdateDTO;
+import main.java.com.jana.dtos.local.MensagemResponse;
 import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
+import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.exceptions.recurso.RecursoNaoEncontradoException;
 import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
 import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.security.TokenService;
 import main.java.com.jana.service.RecursoService;
-import main.java.com.jana.service.UsuarioService; 
+import main.java.com.jana.service.UsuarioService;
+import main.java.com.jana.utils.TokenUtils;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -22,7 +24,6 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/recursos/*")
-
 public class RecursoController extends HttpServlet {
     private final RecursoService recursoService = new RecursoService(new RecursoDAO());
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
@@ -30,194 +31,205 @@ public class RecursoController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
-            
-            TokenService.extractUserIdFromToken(token); 
 
             Integer id = extrairIdDaUrl(req);
 
             if (id == null) {
+
                 List<RecursoResponseDTO> recursos = recursoService.getAllRecursos();
-                resp.getWriter().write(gson.toJson(recursos));
+                enviarSucesso(resp, recursos);
             } else {
+
                 RecursoResponseDTO recurso = recursoService.getRecurso(id);
-                resp.getWriter().write(gson.toJson(recurso));
+                enviarSucesso(resp, recurso);
             }
-            resp.setStatus(HttpServletResponse.SC_OK);
 
         } catch (RecursoNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
-        } catch (Exception e) { 
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write(gson.toJson("Token inválido ou erro no servidor: " + e.getMessage()));
-            e.printStackTrace(); 
+            enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
 
-            Long userId = TokenService.extractUserIdFromToken(token);
-            
-            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
-            
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+            // Verificar se é administrador
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
-           
+
+
             RecursoRegisterDTO dto = gson.fromJson(req.getReader(), RecursoRegisterDTO.class);
-            recursoService.createRecurso(dto, userId.intValue());
-            
-            resp.setStatus(HttpServletResponse.SC_CREATED); 
-            resp.getWriter().write(gson.toJson("Recurso cadastrado com sucesso"));
+
+
+            RecursoResponseDTO novoRecurso = recursoService.createRecurso(dto, userId);
+
+
+            enviarSucesso(resp, HttpServletResponse.SC_CREATED, novoRecurso);
 
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write(gson.toJson("Usuário do token inválido."));
+            enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
+        } catch (BusinessException e) {
+            enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) { 
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
-            
-            Long userId = TokenService.extractUserIdFromToken(token);
-            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
-            
+
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
+
 
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(gson.toJson("ID do recurso ausente na URL. Ex: /recursos/123"));
+                enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, "ID do recurso ausente na URL.");
                 return;
             }
 
+
             RecursoUpdateDTO dto = gson.fromJson(req.getReader(), RecursoUpdateDTO.class);
 
-            recursoService.updateRecurso(id, dto);
-            
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(gson.toJson("Recurso atualizado com sucesso"));
+            RecursoResponseDTO recursoAtualizado = recursoService.updateRecurso(id, dto);
+
+            enviarSucesso(resp, recursoAtualizado);
 
         } catch (RecursoNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); 
-            resp.getWriter().write(gson.toJson("Usuário do token inválido."));
+            enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
+        } catch (BusinessException e) {
+            enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        configurarResponse(resp);
 
         try {
-            String token = extrairToken(req);
-            if (token == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+
+            Integer userId = TokenUtils.extrairUserId(req);
+            if (userId == null) {
+                enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
-            
-            Long userId = TokenService.extractUserIdFromToken(token);
-            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId.intValue()); 
-            
+
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                resp.getWriter().write(gson.toJson("Acesso negado. Requer perfil de Administrador."));
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
-   
+
+
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(gson.toJson("ID do recurso ausente na URL. Ex: /recursos/123"));
+                enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, "ID do recurso ausente na URL.");
                 return;
             }
 
-            recursoService.deleteRecurso(id);
-            
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(gson.toJson("Recurso deletado com sucesso"));
 
-        } catch (RecursoNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
+            recursoService.deleteRecurso(id);
+
+            enviarMensagem(resp, HttpServletResponse.SC_OK, "Recurso deletado com sucesso");
+
+        } catch (RecursoNaoEncontradoException | BusinessException e) {
+            enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); 
-            resp.getWriter().write(gson.toJson("Usuário do token inválido."));
+            enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private String extrairToken(HttpServletRequest req) {
-        String header = req.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+    private Integer extrairIdDaUrl(HttpServletRequest req) {
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo == null || pathInfo.equals("/")) {
             return null;
         }
-        return header.substring(7);
-    }
 
-    private Integer extrairIdDaUrl(HttpServletRequest req) {
-        String pathInfo = req.getPathInfo(); 
-        
-        if (pathInfo == null || pathInfo.equals("/")) {
-            return null; 
-        }
-        
         try {
             return Integer.parseInt(pathInfo.substring(1));
         } catch (NumberFormatException e) {
-            return null; 
+            return null;
         }
+    }
+
+    private void configurarResponse(HttpServletResponse resp) {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+    }
+
+    private void enviarSucesso(HttpServletResponse resp, Object data) throws IOException {
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.getWriter().write(gson.toJson(data));
+    }
+
+    private void enviarSucesso(HttpServletResponse resp, int status, Object data) throws IOException {
+        resp.setStatus(status);
+        resp.getWriter().write(gson.toJson(data));
+    }
+
+    private void enviarMensagem(HttpServletResponse resp, int status, String mensagem) throws IOException {
+        resp.setStatus(status);
+        resp.getWriter().write(gson.toJson(new MensagemResponse(true, mensagem)));
+    }
+
+    private void enviarErro(HttpServletResponse resp, int status, String mensagem) throws IOException {
+        resp.setStatus(status);
+        resp.getWriter().write(gson.toJson(new MensagemResponse(false, mensagem)));
     }
 }

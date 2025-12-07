@@ -5,8 +5,8 @@ import main.java.com.jana.model.enums.TipoLocal;
 import main.java.com.jana.model.enums.Turma;
 
 public record LocalResponseDTO(
-        int localId,
-        int userId, 
+        Integer localId,
+        Integer userId,
         TipoLocal local,
         Ano ano,
         Turma turma

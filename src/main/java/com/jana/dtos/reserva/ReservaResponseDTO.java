@@ -2,14 +2,17 @@ package main.java.com.jana.dtos.reserva;
 
 import main.java.com.jana.model.enums.Periodo;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 public record ReservaResponseDTO(
         Integer reservaId,
         Integer userId,
         Integer recursoId,
         Integer localId,
-        java.util.Date dataReservada,
+        LocalDate dataReservada,
         String observacao,
         Periodo periodo,
-        java.time.LocalTime horaRetirada,
-        java.sql.Time horaEntrega
+        LocalTime horaRetirada,
+        LocalTime horaEntrega
 ) { }

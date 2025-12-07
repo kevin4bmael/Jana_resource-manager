@@ -5,8 +5,8 @@ import main.java.com.jana.model.enums.TipoLocal;
 import main.java.com.jana.model.enums.Turma;
 
 public class Local {
-    private int localId;
-    private int userId; 
+    private Integer localId;
+    private Integer userId;
     private TipoLocal local; 
     private Ano ano; 
     private Turma turma; 

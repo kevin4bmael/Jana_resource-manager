@@ -7,7 +7,7 @@ public record RecursoResponseDTO(
         int userId, 
         String codPatrimonio,
         String item,
-        int numero,
+        Integer numero,
         Funcional funcional,
         String observacao
 ) {

@@ -7,8 +7,10 @@ import main.java.com.jana.dtos.reserva.ReservaUpdateDTO;
 import main.java.com.jana.exceptions.BusinessException;
 import main.java.com.jana.exceptions.reserva.ReservaNaoEncontradaException;
 import main.java.com.jana.model.Reserva;
+import main.java.com.jana.model.enums.Periodo;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,16 +68,32 @@ public class ReservaService {
         reservaDAO.saveReserva(novaReserva);
     }
 
-    public void updateReserva(Integer id, ReservaUpdateDTO dto) throws SQLException, ReservaNaoEncontradaException {
-        Reserva reserva = reservaDAO.findReservaById(id); // Lança 404 se não existir
+    public void updateReserva(Integer id, ReservaUpdateDTO dto) throws SQLException, ReservaNaoEncontradaException, BusinessException {
+        Reserva reserva = reservaDAO.findReservaById(id);
+
+        if (dto.recursoId() != null || dto.dataReservada() != null || dto.periodo() != null) {
+            Integer novoRecurso = (dto.recursoId() != null) ? dto.recursoId() : reserva.getRecursoId();
+            LocalDate novaData = (dto.dataReservada() != null) ? dto.dataReservada() : reserva.getDataReservada();
+            Periodo novoPeriodo = (dto.periodo() != null) ? dto.periodo() : reserva.getPeriodo();
+
+            boolean dadosMudaram = !novaData.equals(reserva.getDataReservada()) ||
+                    !novoPeriodo.equals(reserva.getPeriodo()) ||
+                    !novoRecurso.equals(reserva.getRecursoId());
+
+            if (dadosMudaram) {
+                boolean conflito = reservaDAO.checkConflict(novoRecurso, novaData, novoPeriodo);
+                if (conflito) {
+                    throw new BusinessException("Conflito: Já existe reserva para estes novos dados.");
+                }
+            }
+        }
 
         if (dto.recursoId() != null) reserva.setRecursoId(dto.recursoId());
         if (dto.localId() != null) reserva.setLocalId(dto.localId());
         if (dto.dataReservada() != null) reserva.setDataReservada(dto.dataReservada());
         if (dto.observacao() != null) reserva.setObservacao(dto.observacao());
         if (dto.periodo() != null) reserva.setPeriodo(dto.periodo());
-        if (dto.horaRetirada() != null) reserva.setHoraRetirada(dto.horaRetirada().toLocalTime());
-
+        if (dto.horaRetirada() != null) reserva.setHoraRetirada(dto.horaRetirada());
         if (dto.horaEntrega() != null) reserva.setHoraEntrega(dto.horaEntrega());
 
         reservaDAO.updateReserva(reserva);

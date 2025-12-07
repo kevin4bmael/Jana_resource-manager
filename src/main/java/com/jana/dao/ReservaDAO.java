@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,6 +26,8 @@ public class ReservaDAO {
     private static final String DELETE_SQL = "DELETE FROM reserva WHERE reservaId = ?";
     private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM reserva WHERE userId = ?";
     private static final String CHECK_CONFLICT_SQL = "SELECT COUNT(*) FROM reserva WHERE recursoId = ? AND dataReservada = ? AND periodo = ?";
+
+
     public void saveReserva(Reserva reserva) throws SQLException {
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -34,7 +37,7 @@ public class ReservaDAO {
             preparedStatement.setInt(3, reserva.getLocalId());
 
             if (reserva.getDataReservada() != null) {
-                preparedStatement.setDate(4, new java.sql.Date(reserva.getDataReservada().getTime()));
+                preparedStatement.setDate(4, java.sql.Date.valueOf(reserva.getDataReservada()));
             } else {
                 preparedStatement.setNull(4, java.sql.Types.DATE);
             }
@@ -42,15 +45,17 @@ public class ReservaDAO {
             preparedStatement.setString(5, reserva.getObservacao());
             preparedStatement.setString(6, reserva.getPeriodo().toString());
 
-            // Tratamento da Hora de Retirada: LocalTime (Model) -> java.sql.Time (DB)
             if (reserva.getHoraRetirada() != null) {
-                // Converte LocalTime para sql.Time
                 preparedStatement.setTime(7, java.sql.Time.valueOf(reserva.getHoraRetirada()));
             } else {
                 preparedStatement.setNull(7, java.sql.Types.TIME);
             }
 
-            preparedStatement.setTime(8, reserva.getHoraEntrega());
+            if (reserva.getHoraEntrega() != null) {
+                preparedStatement.setTime(8, java.sql.Time.valueOf(reserva.getHoraEntrega()));
+            } else {
+                preparedStatement.setNull(8, java.sql.Types.TIME);
+            }
 
             int affectedRows = preparedStatement.executeUpdate();
 
@@ -102,18 +107,17 @@ public class ReservaDAO {
         return reservas;
     }
 
-    public boolean checkConflict(Integer recursoId, Date dataReservada, Periodo periodo) throws SQLException {
+    public boolean checkConflict(Integer recursoId, LocalDate dataReservada, Periodo periodo) throws SQLException {
         int count = 0;
 
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(CHECK_CONFLICT_SQL)) {
 
             preparedStatement.setInt(1, recursoId);
-            preparedStatement.setDate(2, new java.sql.Date(dataReservada.getTime()));
+            preparedStatement.setDate(2, java.sql.Date.valueOf(dataReservada));
             preparedStatement.setString(3, periodo.toString());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-
                 if (resultSet.next()) {
                     count = resultSet.getInt(1);
                 }
@@ -146,7 +150,7 @@ public class ReservaDAO {
             preparedStatement.setInt(3, reserva.getLocalId());
 
             if (reserva.getDataReservada() != null) {
-                preparedStatement.setDate(4, new java.sql.Date(reserva.getDataReservada().getTime()));
+                preparedStatement.setDate(4, java.sql.Date.valueOf(reserva.getDataReservada()));
             } else {
                 preparedStatement.setNull(4, java.sql.Types.DATE);
             }
@@ -159,7 +163,13 @@ public class ReservaDAO {
             } else {
                 preparedStatement.setNull(7, java.sql.Types.TIME);
             }
-            preparedStatement.setTime(8, reserva.getHoraEntrega());
+
+            // ✅ Corrigido: movido para ANTES do executeUpdate e removido duplicação
+            if (reserva.getHoraEntrega() != null) {
+                preparedStatement.setTime(8, java.sql.Time.valueOf(reserva.getHoraEntrega()));
+            } else {
+                preparedStatement.setNull(8, java.sql.Types.TIME);
+            }
 
             preparedStatement.setInt(9, reserva.getReservaId());
 
@@ -184,22 +194,26 @@ public class ReservaDAO {
     }
 
     private Reserva resultSetToReserva(ResultSet resultSet) throws SQLException {
-
         Integer reservaId = resultSet.getInt("reservaId");
         Integer userId = resultSet.getInt("userId");
         Integer recursoId = resultSet.getInt("recursoId");
         Integer localId = resultSet.getInt("localId");
 
         java.sql.Date sqlDate = resultSet.getDate("dataReservada");
-        Date dataReservada = (sqlDate != null) ? new Date(sqlDate.getTime()) : null;
+        LocalDate dataReservada = (sqlDate != null) ? sqlDate.toLocalDate() : null;
 
         String observacao = resultSet.getString("observacao");
-        Periodo periodo = Periodo.valueOf(resultSet.getString("periodo"));
+
+        String periodoString = resultSet.getString("periodo");
+        Periodo periodo = (periodoString != null) ? Periodo.valueOf(periodoString.toUpperCase()) : null;
+
 
         Time sqlTimeRetirada = resultSet.getTime("horaRetirada");
         LocalTime horaRetirada = (sqlTimeRetirada != null) ? sqlTimeRetirada.toLocalTime() : null;
 
-        Time horaEntrega = resultSet.getTime("horaEntrega");
+        Time sqlTimeEntrega = resultSet.getTime("horaEntrega");
+        LocalTime horaEntrega = (sqlTimeEntrega != null) ? sqlTimeEntrega.toLocalTime() : null;
+
 
         Reserva reserva = new Reserva();
         reserva.setReservaId(reservaId);

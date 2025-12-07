@@ -3,12 +3,12 @@ package main.java.com.jana.dtos.registro;
 import java.time.LocalDateTime;
 
 public record RegistroResponseDTO(
-        int registroId,
+        Integer registroId,
         Integer reservaId,
-        int userId,
-        int recursoId,
-        int localId,
-        int movimentacaoId,
+        Integer userId,
+        Integer recursoId,
+        Integer localId,
+        Integer movimentacaoId,
         String nome,
         String item,
         Integer numero,

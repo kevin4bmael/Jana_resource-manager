@@ -5,16 +5,12 @@ import main.java.com.jana.model.Recurso;
 import main.java.com.jana.model.enums.Funcional;
 import main.java.com.jana.utils.Conexao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecursoDAO {
 
-   
     public Recurso findRecursoById(Integer recursoId) throws SQLException {
         String sql = "SELECT * FROM recurso WHERE recursoId = ?";
         
@@ -27,7 +23,6 @@ public class RecursoDAO {
                 if (resultSet.next()) {
                     return resultSetToRecurso(resultSet);
                 } else {
-                    
                     throw new RecursoNaoEncontradoException("Recurso com id: " + recursoId + " nao encontrado!");
                 }
             }
@@ -64,20 +59,34 @@ public class RecursoDAO {
 
     public void saveRecurso(Recurso recurso) throws SQLException {
         String sql = "INSERT INTO recurso (userId, codigoPat, item, numero, funcional, observacao) VALUES (?, ?, ?, ?, ?, ?)";
-        
+
         try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            preparedStatement.setInt(1, recurso.getUserId());
-            preparedStatement.setString(2, recurso.getCodPatrimonio());
-            preparedStatement.setString(3, recurso.getItem());
-            preparedStatement.setInt(4, recurso.getNumero());
-            preparedStatement.setString(5, recurso.getFuncional().toString());
-            preparedStatement.setString(6, recurso.getObservacao());
+            ps.setInt(1, recurso.getUserId());
+            ps.setString(2, recurso.getCodPatrimonio());
+            ps.setString(3, recurso.getItem());
 
-            int result = preparedStatement.executeUpdate();
+            // Tratar numero como nullable
+            if (recurso.getNumero() != null) {
+                ps.setInt(4, recurso.getNumero());
+            } else {
+                ps.setNull(4, Types.INTEGER);
+            }
+
+            ps.setString(5, recurso.getFuncional().toString());
+            ps.setString(6, recurso.getObservacao());
+
+            int result = ps.executeUpdate();
             if (result == 0) {
-                throw new SQLException("Falha ao salvar recurso, nenhuma linha afetada.");
+                throw new SQLException("Falha ao salvar recurso.");
+            }
+
+            // Recuperar o ID gerado
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    recurso.setRecursoId(rs.getInt(1));
+                }
             }
         }
     }

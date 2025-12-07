@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 
 public class Registro {
 
-    private int registroId;
+    private Integer registroId;
     private Integer reservaId;
-    private int userId;
-    private int resourceId;
-    private int localId;
-    private int movimentacaoId;
+    private Integer userId;
+    private Integer resourceId;
+    private Integer localId;
+    private Integer movimentacaoId;
     private String nome;
     private String item;
     private Integer numero;

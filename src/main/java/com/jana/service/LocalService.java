@@ -4,6 +4,8 @@ import main.java.com.jana.dao.LocalDAO;
 import main.java.com.jana.dtos.local.LocalRegisterDTO;
 import main.java.com.jana.dtos.local.LocalResponseDTO;
 import main.java.com.jana.dtos.local.LocalUpdateDTO;
+import main.java.com.jana.exceptions.BusinessException;
+import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
 import main.java.com.jana.model.Local;
 import main.java.com.jana.model.enums.TipoLocal;
 
@@ -32,12 +34,24 @@ public class LocalService {
 
 
     public LocalResponseDTO createLocal(LocalRegisterDTO dto, Integer userId) throws SQLException {
+        if (dto.local() == null) {
+            throw new BusinessException("O tipo de local é obrigatório");
+        }
+
+        // Validação específica para SALA_DE_AULA
+        if (dto.local() == TipoLocal.SALA_DE_AULA) {
+            if (dto.ano() == null || dto.turma() == null) {
+                throw new BusinessException("Ano e turma são obrigatórios para salas de aula");
+            }
+        }
+
         Local novoLocal = new Local(
                 userId,
                 dto.local(),
                 dto.ano(),
                 dto.turma()
         );
+
 
         if (novoLocal.getLocal() != TipoLocal.SALA_DE_AULA) {
             novoLocal.setAno(null);
@@ -76,8 +90,7 @@ public class LocalService {
 
     public void deleteLocal(Integer id) throws SQLException {
         localDAO.findLocalById(id);
-
-        localDAO.deleteById(id);
+         localDAO.deleteById(id);
     }
 
     private LocalResponseDTO mapToLocalResponseDTO(Local local) {

@@ -3,11 +3,11 @@ package main.java.com.jana.model;
 import main.java.com.jana.model.enums.Funcional;
 
 public class Recurso {
-    private int recursoId;
-    private int userId; 
-    private String codPatrimonio; 
-    private String item; 
-    private int numero;
+    private Integer recursoId;
+    private Integer userId;
+    private String codPatrimonio;
+    private String item;
+    private Integer numero;
     private Funcional funcional;
     private String observacao;
 
@@ -30,19 +30,19 @@ public class Recurso {
         this.observacao = observacao;
     }
 
-    public int getRecursoId() {
+    public Integer getRecursoId() {
         return recursoId;
     }
 
-    public void setRecursoId(int recursoId) {
+    public void setRecursoId(Integer recursoId) {
         this.recursoId = recursoId;
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
@@ -62,11 +62,11 @@ public class Recurso {
         this.item = item;
     }
 
-    public int getNumero() {
+    public Integer getNumero() {
         return numero;
     }
 
-    public void setNumero(int numero) {
+    public void setNumero(Integer numero) {
         this.numero = numero;
     }
 

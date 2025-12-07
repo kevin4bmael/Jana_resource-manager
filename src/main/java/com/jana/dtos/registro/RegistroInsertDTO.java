@@ -2,10 +2,10 @@ package main.java.com.jana.dtos.registro;
 
 public record RegistroInsertDTO(
         Integer reservaId,
-        int userId,
-        int recursoId,
-        int localId,
-        int movimentacaoId,
+        Integer userId,
+        Integer recursoId,
+        Integer localId,
+        Integer movimentacaoId,
         String nome,
         String item,
         Integer numero,
