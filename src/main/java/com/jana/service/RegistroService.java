@@ -1,13 +1,10 @@
-package main.java.com.jana.service;
+package com.jana.service;
 
-import main.java.com.jana.dao.RegistroDAO;
-import main.java.com.jana.dtos.registro.RegistroHistoricoDTO;
-import main.java.com.jana.dtos.registro.RegistroInsertDTO;
-import main.java.com.jana.dtos.registro.RegistroPendenteDto;
-import main.java.com.jana.dtos.registro.RegistroResponseDTO;
-import main.java.com.jana.dtos.registro.RegistroUpdateDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.model.Registro;
+
+import com.jana.dao.RegistroDAO;
+import com.jana.dtos.registro.*;
+import com.jana.exceptions.BusinessException;
+import com.jana.model.Registro;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;

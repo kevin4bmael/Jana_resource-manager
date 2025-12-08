@@ -1,12 +1,12 @@
-package main.java.com.jana.service;
+package com.jana.service;
 
-import main.java.com.jana.dao.MovimentacaoDAO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoRegisterDTO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoResponseDTO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoUpdateDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.exceptions.recurso.RecursoNaoEncontradoException;
 
+import com.jana.dao.MovimentacaoDAO;
+import com.jana.dtos.movimentacao.MovimentacaoRegisterDTO;
+import com.jana.dtos.movimentacao.MovimentacaoResponseDTO;
+import com.jana.dtos.movimentacao.MovimentacaoUpdateDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.exceptions.recurso.RecursoNaoEncontradoException;
 
 import java.sql.SQLException;
 import java.util.List;

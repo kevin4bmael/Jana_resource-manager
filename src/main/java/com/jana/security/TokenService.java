@@ -1,14 +1,15 @@
-package main.java.com.jana.security;
+package com.jana.security;
 
+import com.jana.model.Usuario;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import main.java.com.jana.model.Usuario;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+
 
 public class TokenService {
 

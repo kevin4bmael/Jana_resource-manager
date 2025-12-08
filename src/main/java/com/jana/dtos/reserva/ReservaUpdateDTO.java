@@ -1,8 +1,7 @@
-package main.java.com.jana.dtos.reserva;
+package com.jana.dtos.reserva;
 
-import main.java.com.jana.model.enums.Periodo;
-import java.sql.Date;
-import java.sql.Time;
+import com.jana.model.enums.Periodo;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 

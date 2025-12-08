@@ -1,4 +1,4 @@
-package main.java.com.jana.model.enums;
+package com.jana.model.enums;
 
 public enum TipoLocal {
     SALA_DE_AULA("Sala de Aula"),

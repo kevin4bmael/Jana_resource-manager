@@ -1,18 +1,18 @@
-package main.java.com.jana.controller;
+package com.jana.controller;
 
-import main.java.com.jana.dao.UsuarioDAO;
-import main.java.com.jana.dtos.registro.*;
-import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.service.RegistroService;
-import main.java.com.jana.service.UsuarioService;
-import main.java.com.jana.utils.TokenUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.jana.dao.UsuarioDAO;
+import com.jana.dtos.registro.*;
+import com.jana.dtos.usuario.UsuarioResponseDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.model.enums.Perfil;
+import com.jana.service.RegistroService;
+import com.jana.service.UsuarioService;
+import com.jana.utils.TokenUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

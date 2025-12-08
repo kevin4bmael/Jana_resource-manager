@@ -1,4 +1,4 @@
-package main.java.com.jana.exceptions;
+package com.jana.exceptions;
 
 public class BusinessException extends RuntimeException {
 

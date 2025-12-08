@@ -1,4 +1,4 @@
-package main.java.com.jana.dtos.local;
+package com.jana.dtos.local;
 
 public class MensagemResponse {
     private final boolean success;

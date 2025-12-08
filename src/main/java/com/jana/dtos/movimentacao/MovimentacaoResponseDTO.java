@@ -1,4 +1,4 @@
-package main.java.com.jana.dtos.movimentacao;
+package com.jana.dtos.movimentacao;
 
 import java.time.LocalDateTime;
 

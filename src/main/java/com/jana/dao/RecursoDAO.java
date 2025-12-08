@@ -1,9 +1,10 @@
-package main.java.com.jana.dao;
+package com.jana.dao;
 
-import main.java.com.jana.exceptions.recurso.RecursoNaoEncontradoException;
-import main.java.com.jana.model.Recurso;
-import main.java.com.jana.model.enums.Funcional;
-import main.java.com.jana.utils.Conexao;
+
+import com.jana.exceptions.recurso.RecursoNaoEncontradoException;
+import com.jana.model.Recurso;
+import com.jana.model.enums.Funcional;
+import com.jana.utils.Conexao;
 
 import java.sql.*;
 import java.util.ArrayList;

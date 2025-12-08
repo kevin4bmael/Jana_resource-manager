@@ -1,7 +1,7 @@
-package main.java.com.jana.security;
+package com.jana.security;
 
 import com.google.gson.Gson;
-import main.java.com.jana.utils.TokenUtils;
+import com.jana.utils.TokenUtils;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;

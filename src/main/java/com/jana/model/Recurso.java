@@ -1,6 +1,7 @@
-package main.java.com.jana.model;
+package com.jana.model;
 
-import main.java.com.jana.model.enums.Funcional;
+
+import com.jana.model.enums.Funcional;
 
 public class Recurso {
     private Integer recursoId;

@@ -1,19 +1,18 @@
-package main.java.com.jana.controller;
+package com.jana.controller;
 
 import com.google.gson.*;
-import main.java.com.jana.dao.ReservaDAO;
-import main.java.com.jana.dao.UsuarioDAO;
-import main.java.com.jana.dtos.local.MensagemResponse;
-import main.java.com.jana.dtos.reserva.ReservaRegisterDTO;
-import main.java.com.jana.dtos.reserva.ReservaResponseDTO;
-import main.java.com.jana.dtos.reserva.ReservaUpdateDTO;
-import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.exceptions.reserva.ReservaNaoEncontradaException;
-
-import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.service.ReservaService;
-import main.java.com.jana.service.UsuarioService;
+import com.jana.dao.ReservaDAO;
+import com.jana.dao.UsuarioDAO;
+import com.jana.dtos.local.MensagemResponse;
+import com.jana.dtos.reserva.ReservaRegisterDTO;
+import com.jana.dtos.reserva.ReservaResponseDTO;
+import com.jana.dtos.reserva.ReservaUpdateDTO;
+import com.jana.dtos.usuario.UsuarioResponseDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.exceptions.reserva.ReservaNaoEncontradaException;
+import com.jana.model.enums.Perfil;
+import com.jana.service.ReservaService;
+import com.jana.service.UsuarioService;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

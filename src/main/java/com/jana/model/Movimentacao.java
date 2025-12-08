@@ -1,8 +1,9 @@
-package main.java.com.jana.model;
+package com.jana.model;
 
-import main.java.com.jana.model.enums.Periodo;
-import main.java.com.jana.model.enums.StatusEntrega;
-import main.java.com.jana.model.enums.StatusRecurso;
+
+import com.jana.model.enums.Periodo;
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
 
 import java.time.LocalDateTime;
 

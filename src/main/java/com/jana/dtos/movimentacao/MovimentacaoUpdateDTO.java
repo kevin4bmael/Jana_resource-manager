@@ -1,8 +1,11 @@
-package main.java.com.jana.dtos.movimentacao;
+package com.jana.dtos.movimentacao;
 
-import main.java.com.jana.model.enums.StatusEntrega;
-import main.java.com.jana.model.enums.StatusRecurso;
+
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
+
 import java.time.LocalDateTime;
+
 
 public record MovimentacaoUpdateDTO(
         StatusRecurso statusRecurso,

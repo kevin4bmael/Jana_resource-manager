@@ -1,6 +1,7 @@
-package main.java.com.jana.dtos.usuario;
+package com.jana.dtos.usuario;
 
-import main.java.com.jana.model.enums.Perfil;
+
+import com.jana.model.enums.Perfil;
 
 public record UsuarioRegisterDTO(
         int matricula,

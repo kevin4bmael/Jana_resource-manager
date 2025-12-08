@@ -1,9 +1,10 @@
-package main.java.com.jana.dao;
+package com.jana.dao;
 
-import main.java.com.jana.dtos.registro.RegistroHistoricoDTO;
-import main.java.com.jana.dtos.registro.RegistroPendenteDto;
-import main.java.com.jana.model.Registro;
-import main.java.com.jana.utils.Conexao;
+
+import com.jana.dtos.registro.RegistroHistoricoDTO;
+import com.jana.dtos.registro.RegistroPendenteDto;
+import com.jana.model.Registro;
+import com.jana.utils.Conexao;
 
 import java.sql.*;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package main.java.com.jana.utils;
+package com.jana.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

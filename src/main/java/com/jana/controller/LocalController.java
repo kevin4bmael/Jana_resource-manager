@@ -1,20 +1,20 @@
-package main.java.com.jana.controller;
+package com.jana.controller;
 
 import com.google.gson.Gson;
-import main.java.com.jana.dao.LocalDAO;
-import main.java.com.jana.dao.UsuarioDAO;
-import main.java.com.jana.dtos.local.LocalRegisterDTO;
-import main.java.com.jana.dtos.local.LocalResponseDTO;
-import main.java.com.jana.dtos.local.LocalUpdateDTO;
-import main.java.com.jana.dtos.local.MensagemResponse;
-import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
-import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
-import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.service.LocalService;
-import main.java.com.jana.service.UsuarioService;
-import main.java.com.jana.utils.TokenUtils;
+import com.jana.dao.LocalDAO;
+import com.jana.dao.UsuarioDAO;
+import com.jana.dtos.local.LocalRegisterDTO;
+import com.jana.dtos.local.LocalResponseDTO;
+import com.jana.dtos.local.LocalUpdateDTO;
+import com.jana.dtos.local.MensagemResponse;
+import com.jana.dtos.usuario.UsuarioResponseDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.exceptions.local.LocalNaoEncontradoException;
+import com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
+import com.jana.model.enums.Perfil;
+import com.jana.service.LocalService;
+import com.jana.service.UsuarioService;
+import com.jana.utils.TokenUtils;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

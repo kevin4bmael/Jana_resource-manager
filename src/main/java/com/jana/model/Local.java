@@ -1,15 +1,16 @@
-package main.java.com.jana.model;
+package com.jana.model;
 
-import main.java.com.jana.model.enums.Ano;
-import main.java.com.jana.model.enums.TipoLocal;
-import main.java.com.jana.model.enums.Turma;
+
+import com.jana.model.enums.Ano;
+import com.jana.model.enums.TipoLocal;
+import com.jana.model.enums.Turma;
 
 public class Local {
     private Integer localId;
     private Integer userId;
     private TipoLocal local; 
     private Ano ano; 
-    private Turma turma; 
+    private Turma turma;
 
     public Local(int localId, int userId, TipoLocal local, Ano ano, Turma turma) {
         this.localId = localId;

@@ -1,10 +1,10 @@
-package main.java.com.jana.model;
+package com.jana.model;
 
-import main.java.com.jana.model.enums.Periodo;
+
+import com.jana.model.enums.Periodo;
 
 import java.time.LocalDate;
-
-import java.time.LocalTime; // Substituindo java.sql.Time
+import java.time.LocalTime;
 
 
 public class Reserva {

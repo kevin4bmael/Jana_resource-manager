@@ -1,6 +1,7 @@
-package main.java.com.jana.dtos.recurso;
+package com.jana.dtos.recurso;
 
-import main.java.com.jana.model.enums.Funcional;
+
+import com.jana.model.enums.Funcional;
 
 public record RecursoResponseDTO(
         int recursoId,

@@ -1,19 +1,18 @@
-package main.java.com.jana.controller;
+package com.jana.controller;
 
 import com.google.gson.*;
-import main.java.com.jana.dao.MovimentacaoDAO;
-import main.java.com.jana.dao.UsuarioDAO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoRegisterDTO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoResponseDTO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoUpdateDTO;
-import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
-import main.java.com.jana.exceptions.BusinessException;
-
-import main.java.com.jana.exceptions.recurso.RecursoNaoEncontradoException;
-import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.service.MovimentacaoService;
-import main.java.com.jana.service.UsuarioService;
-import main.java.com.jana.utils.TokenUtils;
+import com.jana.dao.MovimentacaoDAO;
+import com.jana.dao.UsuarioDAO;
+import com.jana.dtos.movimentacao.MovimentacaoRegisterDTO;
+import com.jana.dtos.movimentacao.MovimentacaoResponseDTO;
+import com.jana.dtos.movimentacao.MovimentacaoUpdateDTO;
+import com.jana.dtos.usuario.UsuarioResponseDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.exceptions.recurso.RecursoNaoEncontradoException;
+import com.jana.model.enums.Perfil;
+import com.jana.service.MovimentacaoService;
+import com.jana.service.UsuarioService;
+import com.jana.utils.TokenUtils;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

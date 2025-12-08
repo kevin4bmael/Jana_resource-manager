@@ -1,4 +1,4 @@
-package main.java.com.jana.model;
+package com.jana.model;
 
 
 import java.time.LocalDateTime;

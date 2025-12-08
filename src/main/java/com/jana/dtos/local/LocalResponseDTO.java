@@ -1,8 +1,9 @@
-package main.java.com.jana.dtos.local;
+package com.jana.dtos.local;
 
-import main.java.com.jana.model.enums.Ano;
-import main.java.com.jana.model.enums.TipoLocal;
-import main.java.com.jana.model.enums.Turma;
+
+import com.jana.model.enums.Ano;
+import com.jana.model.enums.TipoLocal;
+import com.jana.model.enums.Turma;
 
 public record LocalResponseDTO(
         Integer localId,

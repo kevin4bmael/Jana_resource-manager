@@ -1,4 +1,4 @@
-package main.java.com.jana.exceptions.recurso;
+package com.jana.exceptions.recurso;
 
 public class RecursoNaoEncontradoException extends RuntimeException {    
     public RecursoNaoEncontradoException(String message) {

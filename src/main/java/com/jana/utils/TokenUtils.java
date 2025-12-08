@@ -1,6 +1,8 @@
-package main.java.com.jana.utils;
+package com.jana.utils;
 
-import main.java.com.jana.security.TokenService;
+
+
+import com.jana.security.TokenService;
 
 import javax.servlet.http.HttpServletRequest;
 

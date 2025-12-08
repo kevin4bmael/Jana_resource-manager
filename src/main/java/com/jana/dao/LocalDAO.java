@@ -1,11 +1,12 @@
-package main.java.com.jana.dao;
+package com.jana.dao;
 
-import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
-import main.java.com.jana.model.Local;
-import main.java.com.jana.model.enums.Ano;
-import main.java.com.jana.model.enums.TipoLocal;
-import main.java.com.jana.model.enums.Turma;
-import main.java.com.jana.utils.Conexao;
+
+import com.jana.exceptions.local.LocalNaoEncontradoException;
+import com.jana.model.Local;
+import com.jana.model.enums.Ano;
+import com.jana.model.enums.TipoLocal;
+import com.jana.model.enums.Turma;
+import com.jana.utils.Conexao;
 
 import java.sql.*;
 import java.util.ArrayList;

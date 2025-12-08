@@ -1,6 +1,7 @@
-package main.java.com.jana.model;
+package com.jana.model;
 
-import main.java.com.jana.model.enums.Perfil;
+
+import com.jana.model.enums.Perfil;
 
 public class Usuario {
     private Integer userId;
@@ -8,7 +9,7 @@ public class Usuario {
     private String nome;
     private String email;
     private String senhaHash;
-    private Perfil perfil;
+
 
     public int getUserId() {
         return userId;

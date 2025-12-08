@@ -1,10 +1,10 @@
-package main.java.com.jana.security;
+package com.jana.security;
 
 import com.google.gson.Gson;
-import main.java.com.jana.dtos.usuario.UsuarioLoginDTO;
-import main.java.com.jana.dtos.usuario.UsuarioRegisterDTO;
-import main.java.com.jana.exceptions.usuario.EmailJaExisteException;
-import main.java.com.jana.model.Usuario;
+import com.jana.dtos.usuario.UsuarioLoginDTO;
+import com.jana.dtos.usuario.UsuarioRegisterDTO;
+import com.jana.exceptions.usuario.EmailJaExisteException;
+import com.jana.model.Usuario;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

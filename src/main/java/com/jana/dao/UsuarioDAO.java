@@ -1,8 +1,9 @@
-package main.java.com.jana.dao;
+package com.jana.dao;
 
-import main.java.com.jana.model.Usuario;
-import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.utils.Conexao;
+
+import com.jana.model.Usuario;
+import com.jana.model.enums.Perfil;
+import com.jana.utils.Conexao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

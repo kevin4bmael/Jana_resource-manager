@@ -1,4 +1,4 @@
-package main.java.com.jana.dtos.usuario;
+package com.jana.dtos.usuario;
 
 
 public record UsuarioUpdateDTO(

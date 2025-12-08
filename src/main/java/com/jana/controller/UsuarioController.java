@@ -1,13 +1,13 @@
 package main.java.com.jana.controller;
 
 import com.google.gson.Gson;
-import main.java.com.jana.dao.UsuarioDAO;
-import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
-import main.java.com.jana.dtos.usuario.UsuarioUpdateDTO;
-import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
-import main.java.com.jana.model.enums.Perfil;
-import main.java.com.jana.service.UsuarioService;
-import main.java.com.jana.utils.TokenUtils;
+import com.jana.dao.UsuarioDAO;
+import com.jana.dtos.usuario.UsuarioResponseDTO;
+import com.jana.dtos.usuario.UsuarioUpdateDTO;
+import com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
+import com.jana.model.enums.Perfil;
+import com.jana.service.UsuarioService;
+import com.jana.utils.TokenUtils;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

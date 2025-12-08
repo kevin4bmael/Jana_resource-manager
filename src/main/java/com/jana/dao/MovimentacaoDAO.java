@@ -1,11 +1,12 @@
-package main.java.com.jana.dao;
+package com.jana.dao;
 
-import main.java.com.jana.dtos.movimentacao.MovimentacaoRegisterDTO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoResponseDTO;
-import main.java.com.jana.dtos.movimentacao.MovimentacaoUpdateDTO;
-import main.java.com.jana.model.enums.StatusEntrega;
-import main.java.com.jana.model.enums.StatusRecurso;
-import main.java.com.jana.utils.Conexao;
+
+import com.jana.dtos.movimentacao.MovimentacaoRegisterDTO;
+import com.jana.dtos.movimentacao.MovimentacaoResponseDTO;
+import com.jana.dtos.movimentacao.MovimentacaoUpdateDTO;
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
+import com.jana.utils.Conexao;
 
 import java.sql.*;
 import java.util.ArrayList;

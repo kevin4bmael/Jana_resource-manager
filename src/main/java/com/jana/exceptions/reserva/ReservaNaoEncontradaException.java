@@ -1,4 +1,4 @@
-package main.java.com.jana.exceptions.reserva;
+package com.jana.exceptions.reserva;
 
 public class ReservaNaoEncontradaException extends RuntimeException {
     public ReservaNaoEncontradaException(String message) {

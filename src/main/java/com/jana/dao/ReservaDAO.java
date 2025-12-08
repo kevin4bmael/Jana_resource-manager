@@ -1,21 +1,16 @@
-package main.java.com.jana.dao;
+package com.jana.dao;
 
-import main.java.com.jana.exceptions.reserva.ReservaNaoEncontradaException;
-import main.java.com.jana.model.Reserva;
-import main.java.com.jana.model.enums.Periodo;
-import main.java.com.jana.utils.Conexao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Time;
+import com.jana.exceptions.reserva.ReservaNaoEncontradaException;
+import com.jana.model.Reserva;
+import com.jana.model.enums.Periodo;
+import com.jana.utils.Conexao;
+
+import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReservaDAO {
 

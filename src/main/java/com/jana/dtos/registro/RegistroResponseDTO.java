@@ -1,4 +1,4 @@
-package main.java.com.jana.dtos.registro;
+package com.jana.dtos.registro;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package main.java.com.jana.exceptions.local;
+package com.jana.exceptions.local;
 
 public class LocalNaoEncontradoException extends RuntimeException {
     

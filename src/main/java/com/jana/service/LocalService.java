@@ -1,13 +1,13 @@
-package main.java.com.jana.service;
+package com.jana.service;
 
-import main.java.com.jana.dao.LocalDAO;
-import main.java.com.jana.dtos.local.LocalRegisterDTO;
-import main.java.com.jana.dtos.local.LocalResponseDTO;
-import main.java.com.jana.dtos.local.LocalUpdateDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.exceptions.local.LocalNaoEncontradoException;
-import main.java.com.jana.model.Local;
-import main.java.com.jana.model.enums.TipoLocal;
+
+import com.jana.dao.LocalDAO;
+import com.jana.dtos.local.LocalRegisterDTO;
+import com.jana.dtos.local.LocalResponseDTO;
+import com.jana.dtos.local.LocalUpdateDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.model.Local;
+import com.jana.model.enums.TipoLocal;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,7 +38,6 @@ public class LocalService {
             throw new BusinessException("O tipo de local é obrigatório");
         }
 
-        // Validação específica para SALA_DE_AULA
         if (dto.local() == TipoLocal.SALA_DE_AULA) {
             if (dto.ano() == null || dto.turma() == null) {
                 throw new BusinessException("Ano e turma são obrigatórios para salas de aula");

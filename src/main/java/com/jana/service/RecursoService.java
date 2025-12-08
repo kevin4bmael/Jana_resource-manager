@@ -1,12 +1,14 @@
-package main.java.com.jana.service;
+package com.jana.service;
 
-import main.java.com.jana.dao.RecursoDAO;
-import main.java.com.jana.dtos.recurso.RecursoRegisterDTO;
-import main.java.com.jana.dtos.recurso.RecursoResponseDTO;
-import main.java.com.jana.dtos.recurso.RecursoUpdateDTO;
-import main.java.com.jana.exceptions.BusinessException;
-import main.java.com.jana.exceptions.recurso.RecursoNaoEncontradoException;
-import main.java.com.jana.model.Recurso;
+
+
+import com.jana.dao.RecursoDAO;
+import com.jana.dtos.recurso.RecursoRegisterDTO;
+import com.jana.dtos.recurso.RecursoResponseDTO;
+import com.jana.dtos.recurso.RecursoUpdateDTO;
+import com.jana.exceptions.BusinessException;
+import com.jana.exceptions.recurso.RecursoNaoEncontradoException;
+import com.jana.model.Recurso;
 
 import java.sql.SQLException;
 import java.util.List;
