@@ -1,6 +1,5 @@
 package com.jana.dao;
 
-
 import com.jana.model.Usuario;
 import com.jana.model.enums.Perfil;
 import com.jana.utils.Conexao;
@@ -9,14 +8,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UsuarioDAO {
-    private static final String FIND_BY_EMAIL_SQL = "SELECT * FROM usuario WHERE email = ?";
 
     public Usuario findUsuarioById(Integer usuarioID) throws SQLException {
-        String sql = "select * from usuarios where id = ?";
+        String sql = "SELECT * FROM usuario WHERE userId = ?";
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -33,7 +32,7 @@ public class UsuarioDAO {
 
     public List<Usuario> findAll() throws SQLException {
         List<Usuario> usuarios = new ArrayList<>();
-        String sql = "select * from usuarios";
+        String sql = "SELECT * FROM usuario";
 
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -48,7 +47,7 @@ public class UsuarioDAO {
     }
 
     public void deleteById(Integer id) throws SQLException {
-        String sql = "delete from usuarios where id = ?";
+        String sql = "DELETE FROM usuario WHERE userId = ?";
 
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -59,7 +58,7 @@ public class UsuarioDAO {
     }
 
     public void delete(Usuario usuario) throws SQLException {
-        String sql = "delete from usuarios where id = ?";
+        String sql = "DELETE FROM usuario WHERE userId = ?";
 
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -70,26 +69,32 @@ public class UsuarioDAO {
     }
 
     public void saveUsuario(Usuario usuario) throws SQLException {
-        String sql = "insert into usuarios (matricula, nome, email, senha_hash, perfil) values (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuario (matricula, nome, email, senha, perfil) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = Conexao.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setInt(1, usuario.getMatricula());
             preparedStatement.setString(2, usuario.getNome());
             preparedStatement.setString(3, usuario.getEmail());
-            preparedStatement.setString(4, usuario.getSenhaHash());
+            preparedStatement.setString(4, usuario.getSenha());
             preparedStatement.setString(5, usuario.getPerfil().toString());
 
             int result = preparedStatement.executeUpdate();
             if (result == 0) {
-                throw new IllegalArgumentException("Falha ao salvar usuário");
+                throw new SQLException("Falha ao salvar usuário");
+            }
+
+            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    usuario.setUserId(generatedKeys.getInt(1));
+                }
             }
         }
     }
 
     public void updateUsuario(Integer id, Usuario usuario) throws SQLException {
-        String sql = "update usuarios set matricula = ?, nome = ?, email = ?, senha_hash = ?, perfil = ? where id = ?";
+        String sql = "UPDATE usuario SET matricula = ?, nome = ?, email = ?, senha = ? WHERE userId = ?";
 
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -97,19 +102,18 @@ public class UsuarioDAO {
             preparedStatement.setInt(1, usuario.getMatricula());
             preparedStatement.setString(2, usuario.getNome());
             preparedStatement.setString(3, usuario.getEmail());
-            preparedStatement.setString(4, usuario.getSenhaHash());
-            preparedStatement.setString(5, usuario.getPerfil().toString());
-            preparedStatement.setInt(6, id);
+            preparedStatement.setString(4, usuario.getSenha());
+            preparedStatement.setInt(5, id);
 
             int result = preparedStatement.executeUpdate();
             if (result == 0) {
-                throw new IllegalArgumentException("Falha ao atualizar usuário");
+                throw new SQLException("Falha ao atualizar usuário");
             }
         }
     }
 
     public boolean existsByEmail(String email) throws SQLException {
-        String sql = "select 1 from usuarios where email = ?";
+        String sql = "SELECT 1 FROM usuario WHERE email = ?";
 
         try (Connection connection = Conexao.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -123,7 +127,7 @@ public class UsuarioDAO {
     }
 
     public Usuario findByEmail(String email) throws SQLException {
-        String sql = "select * from usuarios where email = ?";
+        String sql = "SELECT * FROM usuario WHERE email = ?";
 
         try (Connection conn = Conexao.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -141,14 +145,15 @@ public class UsuarioDAO {
     }
 
     private Usuario resultSetToUsuario(ResultSet resultSet) throws SQLException {
-        int userId = resultSet.getInt("id");
+        int userId = resultSet.getInt("userId");
         int matricula = resultSet.getInt("matricula");
         String nome = resultSet.getString("nome");
         String email = resultSet.getString("email");
-        String senhaHash = resultSet.getString("senha_hash");
-        Perfil perfil = Perfil.valueOf(resultSet.getString("perfil"));
+        String senhaHash = resultSet.getString("senha");
+
+        String perfilString = resultSet.getString("perfil");
+        Perfil perfil = (perfilString != null) ? Perfil.valueOf(perfilString.toUpperCase()) : Perfil.COMUM;
 
         return new Usuario(userId, matricula, nome, email, senhaHash, perfil);
     }
-
 }

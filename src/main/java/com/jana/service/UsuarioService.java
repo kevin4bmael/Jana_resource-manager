@@ -1,8 +1,6 @@
 package com.jana.service;
 
-
-
-
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.jana.dao.UsuarioDAO;
 import com.jana.dtos.usuario.UsuarioResponseDTO;
 import com.jana.dtos.usuario.UsuarioUpdateDTO;
@@ -21,13 +19,13 @@ public class UsuarioService {
 
     public UsuarioResponseDTO getUsuario(Integer id) throws SQLException {
         Usuario usuario = findUserOrThrow(id);
-            return new UsuarioResponseDTO(
-                    usuario.getUserId(),
-                    usuario.getMatricula(),
-                    usuario.getNome(),
-                    usuario.getEmail(),
-                    usuario.getPerfil()
-            );
+        return new UsuarioResponseDTO(
+                usuario.getUserId(),
+                usuario.getMatricula(),
+                usuario.getNome(),
+                usuario.getEmail(),
+                usuario.getPerfil()
+        );
     }
 
     public List<UsuarioResponseDTO> getAllUsuarios() throws SQLException {
@@ -37,10 +35,17 @@ public class UsuarioService {
 
     public void updateUsuario(Integer id, UsuarioUpdateDTO usuarioUpdateDTO) throws SQLException {
         Usuario usuario = findUserOrThrow(id);
-        if (usuarioUpdateDTO.nome() != null ) usuario.setNome(usuarioUpdateDTO.nome());
+
+        if (usuarioUpdateDTO.nome() != null) usuario.setNome(usuarioUpdateDTO.nome());
         if (usuarioUpdateDTO.email() != null) usuario.setEmail(usuarioUpdateDTO.email());
-        if(usuarioUpdateDTO.senha() !=null) usuario.setSenhaHash(BCrypt.withDefaults().hashToString(12, usuarioUpdateDTO.senha().toCharArray()));
-        usuarioDAO.updateUsuario(id,usuario);
+
+        // CORREÇÃO AQUI: Sintaxe atualizada para at.favre.lib
+        if (usuarioUpdateDTO.senha() != null) {
+            String hashSenha = BCrypt.withDefaults().hashToString(12, usuarioUpdateDTO.senha().toCharArray());
+            usuario.setSenha(hashSenha);
+        }
+
+        usuarioDAO.updateUsuario(id, usuario);
     }
 
     public UsuarioResponseDTO findByEmail(String email) throws SQLException {
@@ -52,17 +57,20 @@ public class UsuarioService {
 
         return toResponseDTO(usuario);
     }
+
     public void deleteUsuario(Integer id) throws SQLException {
         Usuario usuario = findUserOrThrow(id);
         usuarioDAO.delete(usuario);
     }
+
     private Usuario findUserOrThrow(Integer id) throws SQLException {
-       Usuario usuario = usuarioDAO.findUsuarioById(id);
-       if(usuario==null){
-           throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " não encontrado!");
-       }
-       return usuario;
+        Usuario usuario = usuarioDAO.findUsuarioById(id);
+        if (usuario == null) {
+            throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " não encontrado!");
+        }
+        return usuario;
     }
+
     private UsuarioResponseDTO toResponseDTO(Usuario usuario) {
         return new UsuarioResponseDTO(
                 usuario.getUserId(),

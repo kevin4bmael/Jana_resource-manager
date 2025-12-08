@@ -7,35 +7,53 @@ import com.jana.exceptions.usuario.EmailJaExisteException;
 import com.jana.model.Usuario;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collections;
 
+@WebServlet("/auth/*")
 public class AuthController extends HttpServlet {
     private final AuthService authService = new AuthService();
     private final Gson gson = new Gson();
     private final TokenService tokenService = new TokenService();
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Gson gson = new Gson();
         String path = req.getPathInfo();
 
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+
+        if (path == null) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            String json = gson.toJson(Collections.singletonMap("erro", "Caminho incompleto"));
+            resp.getWriter().write(json);
+            return;
+        }
+
         try {
-            if ("register".equals(path)) {
+            if ("/register".equals(path)) {
                 handleRegister(req, resp);
-            } else if ("login".equals(path)) {
+            } else if ("/login".equals(path)) {
                 handleLogin(req, resp);
             } else {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().write("URL inválida!");
+                String json = gson.toJson(Collections.singletonMap("erro", "URL inválida! Path recebido: " + path));
+                resp.getWriter().write(json);
             }
         } catch (EmailJaExisteException e) {
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            resp.getWriter().write(e.getMessage());
+            String json = gson.toJson(Collections.singletonMap("erro", e.getMessage()));
+            resp.getWriter().write(json);
         } catch (SQLException e) {
+            e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Erro no servidor");
+            String json = gson.toJson(Collections.singletonMap("erro", "Erro interno no servidor"));
+            resp.getWriter().write(json);
         }
     }
 

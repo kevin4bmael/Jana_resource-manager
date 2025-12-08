@@ -9,11 +9,13 @@ import com.jana.model.enums.Perfil;
 import com.jana.service.UsuarioService;
 import com.jana.utils.TokenUtils;
 
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@WebServlet("/usuarios/*")
 public class UsuarioController extends HttpServlet {
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
     private final Gson gson = new Gson();

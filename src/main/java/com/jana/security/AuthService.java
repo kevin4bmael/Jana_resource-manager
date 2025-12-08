@@ -1,15 +1,17 @@
 package com.jana.security;
 
-
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.jana.dao.UsuarioDAO;
 import com.jana.dtos.usuario.UsuarioLoginDTO;
 import com.jana.dtos.usuario.UsuarioRegisterDTO;
 import com.jana.exceptions.usuario.EmailJaExisteException;
 import com.jana.model.Usuario;
+import com.jana.model.enums.Perfil;
 
 import java.sql.SQLException;
 
 public class AuthService {
+
     private final UsuarioDAO usuarioDAO;
 
     public AuthService() {
@@ -17,31 +19,35 @@ public class AuthService {
     }
 
     public void register(UsuarioRegisterDTO dto) throws SQLException {
+
         if (usuarioDAO.existsByEmail(dto.email())) {
             throw new EmailJaExisteException("O email: " + dto.email() + " já existe!");
         }
 
         String senhaHash = BCrypt.withDefaults().hashToString(12, dto.senha().toCharArray());
+
         Usuario usuario = new Usuario(
                 dto.matricula(),
                 dto.nome(),
                 dto.email(),
                 senhaHash,
-                dto.perfil()
+                Perfil.COMUM
         );
 
         usuarioDAO.saveUsuario(usuario);
     }
 
     public Usuario login(UsuarioLoginDTO dto) throws SQLException {
+
         Usuario usuario = usuarioDAO.findByEmail(dto.email());
 
         if (usuario == null) {
             return null;
         }
 
-
-        boolean senhaCorreta = BCrypt.verifyer().verify(dto.senha().toCharArray(), usuario.getSenhaHash()).verified;
+        boolean senhaCorreta = BCrypt.verifyer()
+                .verify(dto.senha().toCharArray(), usuario.getSenha())
+                .verified;
 
         if (senhaCorreta) {
             return usuario;

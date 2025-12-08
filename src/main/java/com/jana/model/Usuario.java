@@ -8,14 +8,27 @@ public class Usuario {
     private int matricula;
     private String nome;
     private String email;
-    private String senhaHash;
+    private String senha;
+    private Perfil perfil;
 
+    public Usuario(Integer userId, int matricula, String nome, String email, String senha, Perfil perfil) {
 
-    public int getUserId() {
+        this.userId = userId;
+        this.matricula = matricula;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.perfil = perfil;
+    }
+
+    public Usuario() {
+    }
+
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
@@ -43,12 +56,12 @@ public class Usuario {
         this.email = email;
     }
 
-    public String getSenhaHash() {
-        return senhaHash;
+    public String getSenha() {
+        return senha;
     }
 
-    public void setSenhaHash(String senhaHash) {
-        this.senhaHash = senhaHash;
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 
     public Perfil getPerfil() {
@@ -58,22 +71,4 @@ public class Usuario {
     public void setPerfil(Perfil perfil) {
         this.perfil = perfil;
     }
-
-    public Usuario(int userId, int matricula, String nome, String email, String senhaHash, Perfil perfil) {
-        this.userId = userId;
-        this.matricula = matricula;
-        this.nome = nome;
-        this.email = email;
-        this.senhaHash = senhaHash;
-        this.perfil = perfil;
-    }
-    public Usuario(int matricula, String nome, String email, String senhaHash, Perfil perfil) {
-        this.matricula = matricula;
-        this.nome = nome;
-        this.email = email;
-        this.senhaHash = senhaHash;
-        this.perfil = perfil;
-    }
-    public Usuario() {}
-
 }
