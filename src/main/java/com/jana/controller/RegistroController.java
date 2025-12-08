@@ -1,8 +1,13 @@
 package main.java.com.jana.controller;
 
+import main.java.com.jana.dao.UsuarioDAO;
 import main.java.com.jana.dtos.registro.*;
+import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
 import main.java.com.jana.exceptions.BusinessException;
+import main.java.com.jana.model.enums.Perfil;
 import main.java.com.jana.service.RegistroService;
+import main.java.com.jana.service.UsuarioService;
+import main.java.com.jana.utils.TokenUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -24,10 +29,12 @@ import java.util.List;
 public class RegistroController extends HttpServlet {
 
     private final RegistroService registroService;
+    private final UsuarioService usuarioService;
     private final Gson gson;
 
     public RegistroController() {
         this.registroService = new RegistroService();
+        this.usuarioService = new UsuarioService(new UsuarioDAO());
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new TypeAdapter<LocalDateTime>() {
                     @Override
@@ -54,18 +61,25 @@ public class RegistroController extends HttpServlet {
         if (acao == null) acao = "listar";
 
         try {
+            Integer userId = TokenUtils.extrairUserId(request);
+            if (userId == null) {
+                enviarErro(response, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
+                return;
+            }
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
             switch (acao) {
                 case "listar":
-                    listarTodos(request, response);
+                    listarTodos(request, response, usuarioLogado);
                     break;
                 case "listarPorUsuario":
-                    listarPorUsuario(request, response);
+                    listarPorUsuario(request, response, usuarioLogado);
                     break;
                 case "listarPendentes":
-                    listarPendentes(request, response);
+                    listarPendentes(request, response, usuarioLogado);
                     break;
                 case "listarHistorico":
-                    listarHistorico(request, response);
+                    listarHistorico(request, response, usuarioLogado);
                     break;
                 default:
                     enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
@@ -86,12 +100,20 @@ public class RegistroController extends HttpServlet {
         }
 
         try {
+
+            Integer userId = TokenUtils.extrairUserId(request);
+            if (userId == null) {
+                enviarErro(response, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
+                return;
+            }
+            UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
             switch (acao) {
                 case "retirar":
-                    registrarRetirada(request, response);
+                    registrarRetirada(request, response, usuarioLogado);
                     break;
                 case "devolver":
-                    registrarDevolucao(request, response);
+                    registrarDevolucao(request, response, usuarioLogado);
                     break;
                 default:
                     enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
@@ -101,46 +123,75 @@ public class RegistroController extends HttpServlet {
         }
     }
 
-    private void listarTodos(HttpServletRequest request, HttpServletResponse response)
+
+    private void listarTodos(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, SQLException {
+
+        if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
+            enviarErro(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado.");
+            return;
+        }
         List<RegistroResponseDTO> lista = registroService.listarTodosDTO();
         enviarJSON(response, lista);
     }
 
-    private void listarPorUsuario(HttpServletRequest request, HttpServletResponse response)
+    private void listarPorUsuario(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, SQLException, BusinessException {
+
         String idParam = request.getParameter("userId");
         if (idParam == null) throw new BusinessException("userId obrigatório");
 
-        List<RegistroResponseDTO> lista = registroService.listarPorUsuarioDTO(Integer.parseInt(idParam));
+        Integer idSolicitado = Integer.parseInt(idParam);
+
+
+        if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR && !usuarioLogado.id().equals(idSolicitado)) {
+            enviarErro(response, HttpServletResponse.SC_FORBIDDEN, "Você não pode visualizar registros de outro usuário.");
+            return;
+        }
+
+        List<RegistroResponseDTO> lista = registroService.listarPorUsuarioDTO(idSolicitado);
         enviarJSON(response, lista);
     }
 
-    private void listarPendentes(HttpServletRequest request, HttpServletResponse response)
+    private void listarPendentes(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, SQLException {
+        // Geralmente apenas Admin ou setor responsável vê pendências gerais
+        if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
+            enviarErro(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado.");
+            return;
+        }
         List<RegistroPendenteDto> lista = registroService.listarPendentes();
         enviarJSON(response, lista);
     }
 
-    private void listarHistorico(HttpServletRequest request, HttpServletResponse response)
+    private void listarHistorico(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, SQLException {
+
+        if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
+            enviarErro(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado.");
+            return;
+        }
         List<RegistroHistoricoDTO> lista = registroService.listarHistoricoCompleto();
         enviarJSON(response, lista);
     }
 
-    private void registrarRetirada(HttpServletRequest request, HttpServletResponse response)
+    private void registrarRetirada(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, BusinessException, SQLException {
+
         String json = lerBody(request);
         RegistroInsertDTO dto = gson.fromJson(json, RegistroInsertDTO.class);
 
         if (dto == null) throw new BusinessException("JSON inválido");
 
+
+
         registroService.registrarRetirada(dto);
         enviarSucesso(response, "Retirada realizada com sucesso");
     }
 
-    private void registrarDevolucao(HttpServletRequest request, HttpServletResponse response)
+    private void registrarDevolucao(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, BusinessException, SQLException {
+
         String json = lerBody(request);
         RegistroUpdateDTO dto = gson.fromJson(json, RegistroUpdateDTO.class);
 
@@ -149,6 +200,8 @@ public class RegistroController extends HttpServlet {
         registroService.registrarDevolucao(dto);
         enviarSucesso(response, "Devolução realizada com sucesso");
     }
+
+    // --- Utilitários ---
 
     private String lerBody(HttpServletRequest request) throws IOException {
         StringBuilder sb = new StringBuilder();

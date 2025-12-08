@@ -2,8 +2,10 @@ package main.java.com.jana.controller;
 
 import com.google.gson.Gson;
 import main.java.com.jana.dao.UsuarioDAO;
+import main.java.com.jana.dtos.usuario.UsuarioResponseDTO;
 import main.java.com.jana.dtos.usuario.UsuarioUpdateDTO;
 import main.java.com.jana.exceptions.usuario.UsuarioNaoEncontradoException;
+import main.java.com.jana.model.enums.Perfil;
 import main.java.com.jana.service.UsuarioService;
 import main.java.com.jana.utils.TokenUtils;
 
@@ -18,36 +20,43 @@ public class UsuarioController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
         try {
-            resp.setContentType("application/json");
-
-
+            // 1. Identifica quem está fazendo a requisição
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write("Token ausente ou inválido");
+                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
                 return;
             }
 
             String listarTodos = req.getParameter("all");
 
             if (listarTodos != null && listarTodos.equals("true")) {
+                UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
+
+                if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
+                    resp.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403 Forbidden
+                    resp.getWriter().write(gson.toJson("Acesso negado: Apenas administradores podem listar todos os usuários."));
+                    return;
+                }
 
                 String jsonTodos = gson.toJson(usuarioService.getAllUsuarios());
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getWriter().write(jsonTodos);
             } else {
-
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getWriter().write(gson.toJson(usuarioService.getUsuario(userId)));
             }
 
         } catch (UsuarioNaoEncontradoException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(e.getMessage());
+            resp.getWriter().write(gson.toJson(e.getMessage()));
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Erro no servidor: " + e.getMessage());
+            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
         }
     }
 

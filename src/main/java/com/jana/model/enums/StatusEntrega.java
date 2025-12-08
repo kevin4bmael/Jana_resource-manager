@@ -1,12 +1,12 @@
 package main.java.com.jana.model.enums;
 
-public enum Periodo {
-    MANHA("Manhã"),
-    TARDE("Tarde");
+public enum StatusEntrega {
+    ENTREGUE("Entregue"),
+    AUSENTE("Ausente");
 
     private final String descricao;
 
-    Periodo(String descricao) {
+    StatusEntrega(String descricao) {
         this.descricao = descricao;
     }
 

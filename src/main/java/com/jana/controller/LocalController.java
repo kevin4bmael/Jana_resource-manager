@@ -35,7 +35,7 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-            // Validar token usando TokenUtils
+
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -45,11 +45,11 @@ public class LocalController extends HttpServlet {
             Integer id = extrairIdDaUrl(req);
 
             if (id == null) {
-                // Listar todos os locais
+
                 List<LocalResponseDTO> locais = localService.getAllLocais();
                 enviarSucesso(resp, locais);
             } else {
-                // Buscar local específico
+
                 LocalResponseDTO local = localService.getLocal(id);
                 enviarSucesso(resp, local);
             }
@@ -68,7 +68,7 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-            // Validar token e obter usuário
+
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -77,20 +77,20 @@ public class LocalController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-            // Verificar se é administrador
+
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
                 enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
                         "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
-            // Ler DTO do body
+
             LocalRegisterDTO dto = gson.fromJson(req.getReader(), LocalRegisterDTO.class);
 
-            // Criar local
+
             LocalResponseDTO novoLocal = localService.createLocal(dto, userId);
 
-            // Retornar sucesso com o objeto criado
+
             enviarSucesso(resp, HttpServletResponse.SC_CREATED, novoLocal);
 
         } catch (UsuarioNaoEncontradoException e) {
@@ -110,7 +110,7 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-            // Validar token e obter usuário
+
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -119,27 +119,25 @@ public class LocalController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-            // Verificar se é administrador
+
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
                 enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
                         "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
-            // Extrair ID da URL
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
                 enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, "ID do local ausente na URL.");
                 return;
             }
 
-            // Ler DTO do body
             LocalUpdateDTO dto = gson.fromJson(req.getReader(), LocalUpdateDTO.class);
 
-            // Atualizar local
+
             LocalResponseDTO localAtualizado = localService.updateLocal(id, dto);
 
-            // Retornar sucesso com o objeto atualizado
+
             enviarSucesso(resp, localAtualizado);
 
         } catch (LocalNaoEncontradoException e) {
@@ -160,7 +158,7 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-            // Validar token e obter usuário
+
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -169,24 +167,23 @@ public class LocalController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-            // Verificar se é administrador
+
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
                 enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
                         "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
-            // Extrair ID da URL
+
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
                 enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, "ID do local ausente na URL.");
                 return;
             }
 
-            // Deletar local
             localService.deleteLocal(id);
 
-            // Retornar mensagem de sucesso
+
             enviarMensagem(resp, HttpServletResponse.SC_OK, "Local deletado com sucesso");
 
         } catch (LocalNaoEncontradoException | BusinessException e) {
