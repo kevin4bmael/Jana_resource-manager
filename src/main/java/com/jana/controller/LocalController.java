@@ -23,9 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/locais/*") 
-
+@WebServlet("/locais/*")
 public class LocalController extends HttpServlet {
+
     private final LocalService localService = new LocalService(new LocalDAO());
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
     private final Gson gson = new Gson();
@@ -35,7 +35,6 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -45,11 +44,9 @@ public class LocalController extends HttpServlet {
             Integer id = extrairIdDaUrl(req);
 
             if (id == null) {
-
                 List<LocalResponseDTO> locais = localService.getAllLocais();
                 enviarSucesso(resp, locais);
             } else {
-
                 LocalResponseDTO local = localService.getLocal(id);
                 enviarSucesso(resp, local);
             }
@@ -57,8 +54,7 @@ public class LocalController extends HttpServlet {
         } catch (LocalNaoEncontradoException e) {
             enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -68,7 +64,6 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -77,19 +72,13 @@ public class LocalController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
-                        "Acesso negado. Requer perfil de Administrador.");
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
-
             LocalRegisterDTO dto = gson.fromJson(req.getReader(), LocalRegisterDTO.class);
-
-
             LocalResponseDTO novoLocal = localService.createLocal(dto, userId);
-
 
             enviarSucesso(resp, HttpServletResponse.SC_CREATED, novoLocal);
 
@@ -98,19 +87,16 @@ public class LocalController extends HttpServlet {
         } catch (BusinessException e) {
             enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -119,10 +105,8 @@ public class LocalController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
-                        "Acesso negado. Requer perfil de Administrador.");
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
@@ -133,10 +117,7 @@ public class LocalController extends HttpServlet {
             }
 
             LocalUpdateDTO dto = gson.fromJson(req.getReader(), LocalUpdateDTO.class);
-
-
             LocalResponseDTO localAtualizado = localService.updateLocal(id, dto);
-
 
             enviarSucesso(resp, localAtualizado);
 
@@ -147,8 +128,7 @@ public class LocalController extends HttpServlet {
         } catch (BusinessException e) {
             enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -158,7 +138,6 @@ public class LocalController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -167,13 +146,10 @@ public class LocalController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
-                        "Acesso negado. Requer perfil de Administrador.");
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
-
 
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
@@ -182,17 +158,14 @@ public class LocalController extends HttpServlet {
             }
 
             localService.deleteLocal(id);
-
-
             enviarMensagem(resp, HttpServletResponse.SC_OK, "Local deletado com sucesso");
 
-        } catch (LocalNaoEncontradoException | BusinessException e) {
+        } catch (LocalNaoEncontradoException e) {
             enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
             enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -211,26 +184,20 @@ public class LocalController extends HttpServlet {
         }
     }
 
-
     private void configurarResponse(HttpServletResponse resp) {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
     }
-
-
-     // Envia resposta de sucesso com status 200
 
     private void enviarSucesso(HttpServletResponse resp, Object data) throws IOException {
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.getWriter().write(gson.toJson(data));
     }
 
-
     private void enviarSucesso(HttpServletResponse resp, int status, Object data) throws IOException {
         resp.setStatus(status);
         resp.getWriter().write(gson.toJson(data));
     }
-
 
     private void enviarMensagem(HttpServletResponse resp, int status, String mensagem) throws IOException {
         resp.setStatus(status);

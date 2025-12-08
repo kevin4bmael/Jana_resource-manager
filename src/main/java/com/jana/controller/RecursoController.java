@@ -25,6 +25,7 @@ import java.util.List;
 
 @WebServlet("/recursos/*")
 public class RecursoController extends HttpServlet {
+
     private final RecursoService recursoService = new RecursoService(new RecursoDAO());
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
     private final Gson gson = new Gson();
@@ -43,11 +44,9 @@ public class RecursoController extends HttpServlet {
             Integer id = extrairIdDaUrl(req);
 
             if (id == null) {
-
                 List<RecursoResponseDTO> recursos = recursoService.getAllRecursos();
                 enviarSucesso(resp, recursos);
             } else {
-
                 RecursoResponseDTO recurso = recursoService.getRecurso(id);
                 enviarSucesso(resp, recurso);
             }
@@ -55,8 +54,7 @@ public class RecursoController extends HttpServlet {
         } catch (RecursoNaoEncontradoException e) {
             enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -66,7 +64,6 @@ public class RecursoController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -75,19 +72,13 @@ public class RecursoController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-            // Verificar se é administrador
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
-                        "Acesso negado. Requer perfil de Administrador.");
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
 
-
             RecursoRegisterDTO dto = gson.fromJson(req.getReader(), RecursoRegisterDTO.class);
-
-
             RecursoResponseDTO novoRecurso = recursoService.createRecurso(dto, userId);
-
 
             enviarSucesso(resp, HttpServletResponse.SC_CREATED, novoRecurso);
 
@@ -96,8 +87,7 @@ public class RecursoController extends HttpServlet {
         } catch (BusinessException e) {
             enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -107,7 +97,6 @@ public class RecursoController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -116,13 +105,10 @@ public class RecursoController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
-                        "Acesso negado. Requer perfil de Administrador.");
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
-
 
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
@@ -130,9 +116,7 @@ public class RecursoController extends HttpServlet {
                 return;
             }
 
-
             RecursoUpdateDTO dto = gson.fromJson(req.getReader(), RecursoUpdateDTO.class);
-
             RecursoResponseDTO recursoAtualizado = recursoService.updateRecurso(id, dto);
 
             enviarSucesso(resp, recursoAtualizado);
@@ -144,8 +128,7 @@ public class RecursoController extends HttpServlet {
         } catch (BusinessException e) {
             enviarErro(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -155,7 +138,6 @@ public class RecursoController extends HttpServlet {
         configurarResponse(resp);
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
                 enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -164,13 +146,10 @@ public class RecursoController extends HttpServlet {
 
             UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
-
             if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN,
-                        "Acesso negado. Requer perfil de Administrador.");
+                enviarErro(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado. Requer perfil de Administrador.");
                 return;
             }
-
 
             Integer id = extrairIdDaUrl(req);
             if (id == null) {
@@ -178,18 +157,15 @@ public class RecursoController extends HttpServlet {
                 return;
             }
 
-
             recursoService.deleteRecurso(id);
-
             enviarMensagem(resp, HttpServletResponse.SC_OK, "Recurso deletado com sucesso");
 
-        } catch (RecursoNaoEncontradoException | BusinessException e) {
+        } catch (RecursoNaoEncontradoException e) {
             enviarErro(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
             enviarErro(resp, HttpServletResponse.SC_UNAUTHORIZED, "Usuário do token inválido.");
         } catch (Exception e) {
-            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro no servidor: " + e.getMessage());
+            enviarErro(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
     }

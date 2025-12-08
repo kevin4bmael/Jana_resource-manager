@@ -18,34 +18,28 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO getUsuario(Integer id) throws SQLException {
-        Usuario usuario = findUserOrThrow(id);
-        return new UsuarioResponseDTO(
-                usuario.getUserId(),
-                usuario.getMatricula(),
-                usuario.getNome(),
-                usuario.getEmail(),
-                usuario.getPerfil()
-        );
+        Usuario usuario = usuarioDAO.findUsuarioById(id);
+        return toResponseDTO(usuario);
     }
 
     public List<UsuarioResponseDTO> getAllUsuarios() throws SQLException {
         return usuarioDAO.findAll().stream()
-                .map(this::toResponseDTO).toList();
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     public void updateUsuario(Integer id, UsuarioUpdateDTO usuarioUpdateDTO) throws SQLException {
-        Usuario usuario = findUserOrThrow(id);
+        Usuario usuario = usuarioDAO.findUsuarioById(id);
 
         if (usuarioUpdateDTO.nome() != null) usuario.setNome(usuarioUpdateDTO.nome());
         if (usuarioUpdateDTO.email() != null) usuario.setEmail(usuarioUpdateDTO.email());
 
-        // CORREÇÃO AQUI: Sintaxe atualizada para at.favre.lib
         if (usuarioUpdateDTO.senha() != null) {
             String hashSenha = BCrypt.withDefaults().hashToString(12, usuarioUpdateDTO.senha().toCharArray());
             usuario.setSenha(hashSenha);
         }
 
-        usuarioDAO.updateUsuario(id, usuario);
+        usuarioDAO.updateUsuario(usuario);
     }
 
     public UsuarioResponseDTO findByEmail(String email) throws SQLException {
@@ -59,16 +53,7 @@ public class UsuarioService {
     }
 
     public void deleteUsuario(Integer id) throws SQLException {
-        Usuario usuario = findUserOrThrow(id);
-        usuarioDAO.delete(usuario);
-    }
-
-    private Usuario findUserOrThrow(Integer id) throws SQLException {
-        Usuario usuario = usuarioDAO.findUsuarioById(id);
-        if (usuario == null) {
-            throw new UsuarioNaoEncontradoException("Usuario com id: " + id + " não encontrado!");
-        }
-        return usuario;
+        usuarioDAO.deleteById(id);
     }
 
     private UsuarioResponseDTO toResponseDTO(Usuario usuario) {

@@ -1,6 +1,5 @@
 package com.jana.service;
 
-
 import com.jana.dao.LocalDAO;
 import com.jana.dtos.local.LocalRegisterDTO;
 import com.jana.dtos.local.LocalResponseDTO;
@@ -22,7 +21,6 @@ public class LocalService {
 
     public LocalResponseDTO getLocal(Integer id) throws SQLException {
         Local local = localDAO.findLocalById(id);
-
         return mapToLocalResponseDTO(local);
     }
 
@@ -31,7 +29,6 @@ public class LocalService {
                 .map(this::mapToLocalResponseDTO)
                 .collect(Collectors.toList());
     }
-
 
     public LocalResponseDTO createLocal(LocalRegisterDTO dto, Integer userId) throws SQLException {
         if (dto.local() == null) {
@@ -44,13 +41,11 @@ public class LocalService {
             }
         }
 
-        Local novoLocal = new Local(
-                userId,
-                dto.local(),
-                dto.ano(),
-                dto.turma()
-        );
-
+        Local novoLocal = new Local();
+        novoLocal.setUserId(userId);
+        novoLocal.setLocal(dto.local());
+        novoLocal.setAno(dto.ano());
+        novoLocal.setTurma(dto.turma());
 
         if (novoLocal.getLocal() != TipoLocal.SALA_DE_AULA) {
             novoLocal.setAno(null);
@@ -61,8 +56,6 @@ public class LocalService {
 
         return mapToLocalResponseDTO(novoLocal);
     }
-
-
 
     public LocalResponseDTO updateLocal(Integer id, LocalUpdateDTO dto) throws SQLException {
         Local local = localDAO.findLocalById(id);
@@ -88,8 +81,7 @@ public class LocalService {
     }
 
     public void deleteLocal(Integer id) throws SQLException {
-        localDAO.findLocalById(id);
-         localDAO.deleteById(id);
+        localDAO.deleteById(id);
     }
 
     private LocalResponseDTO mapToLocalResponseDTO(Local local) {

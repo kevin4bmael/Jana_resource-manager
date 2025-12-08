@@ -1,13 +1,10 @@
 package com.jana.service;
 
-
-
 import com.jana.dao.RecursoDAO;
 import com.jana.dtos.recurso.RecursoRegisterDTO;
 import com.jana.dtos.recurso.RecursoResponseDTO;
 import com.jana.dtos.recurso.RecursoUpdateDTO;
 import com.jana.exceptions.BusinessException;
-import com.jana.exceptions.recurso.RecursoNaoEncontradoException;
 import com.jana.model.Recurso;
 
 import java.sql.SQLException;
@@ -33,7 +30,6 @@ public class RecursoService {
     }
 
     public RecursoResponseDTO createRecurso(RecursoRegisterDTO dto, Integer userId) throws SQLException {
-
         if (dto.item() == null || dto.item().trim().isEmpty()) {
             throw new BusinessException("O campo 'item' é obrigatório");
         }
@@ -45,19 +41,17 @@ public class RecursoService {
             throw new BusinessException("O código patrimonial deve ter no máximo 7 caracteres");
         }
 
-
         if (dto.observacao() != null && dto.observacao().length() > 100) {
             throw new BusinessException("A observação deve ter no máximo 100 caracteres");
         }
 
-        Recurso novoRecurso = new Recurso(
-                userId,
-                dto.codPatrimonio(),
-                dto.item().trim(),
-                dto.numero(),
-                dto.funcional(),
-                dto.observacao()
-        );
+        Recurso novoRecurso = new Recurso();
+        novoRecurso.setUserId(userId);
+        novoRecurso.setCodPatrimonio(dto.codPatrimonio());
+        novoRecurso.setItem(dto.item().trim());
+        novoRecurso.setNumero(dto.numero());
+        novoRecurso.setFuncional(dto.funcional());
+        novoRecurso.setObservacao(dto.observacao());
 
         recursoDAO.saveRecurso(novoRecurso);
 
@@ -65,15 +59,12 @@ public class RecursoService {
     }
 
     public RecursoResponseDTO updateRecurso(Integer id, RecursoUpdateDTO dto) throws SQLException {
-
         Recurso recurso = recursoDAO.findRecursoById(id);
-
 
         if (dto.codPatrimonio() == null && dto.item() == null && dto.numero() == null
                 && dto.funcional() == null && dto.observacao() == null) {
             throw new BusinessException("Nenhum campo foi enviado para atualização");
         }
-
 
         if (dto.codPatrimonio() != null) {
             if (dto.codPatrimonio().length() > 7) {
@@ -110,11 +101,7 @@ public class RecursoService {
     }
 
     public void deleteRecurso(Integer id) throws SQLException {
-        recursoDAO.findRecursoById(id);
-        boolean deletado = recursoDAO.deleteById(id);
-        if (!deletado) {
-            throw new RecursoNaoEncontradoException("Falha ao deletar o recurso com id: " + id);
-        }
+        recursoDAO.deleteById(id);
     }
 
     private RecursoResponseDTO mapToRecursoResponseDTO(Recurso recurso) {

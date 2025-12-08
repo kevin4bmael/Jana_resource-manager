@@ -20,6 +20,13 @@ public class Usuario {
         this.senha = senha;
         this.perfil = perfil;
     }
+    public Usuario(int matricula, String nome, String email, String senha, Perfil perfil) {
+        this.matricula = matricula;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.perfil = perfil;
+    }
 
     public Usuario() {
     }

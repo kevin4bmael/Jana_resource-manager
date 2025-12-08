@@ -201,7 +201,6 @@ public class RegistroController extends HttpServlet {
         enviarSucesso(response, "Devolução realizada com sucesso");
     }
 
-    // --- Utilitários ---
 
     private String lerBody(HttpServletRequest request) throws IOException {
         StringBuilder sb = new StringBuilder();

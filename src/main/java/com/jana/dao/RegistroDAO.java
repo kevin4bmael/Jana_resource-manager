@@ -1,6 +1,5 @@
 package com.jana.dao;
 
-
 import com.jana.dtos.registro.RegistroHistoricoDTO;
 import com.jana.dtos.registro.RegistroPendenteDto;
 import com.jana.model.Registro;
@@ -13,15 +12,19 @@ import java.util.List;
 
 public class RegistroDAO {
 
-    public void criar(Registro r) throws SQLException {
-        String sql = "INSERT INTO registro " +
-                "(reservaId, userId, recursoId, localId, movimentacaoId, " +
-                "nome, item, numero, ano, turma, periodo, " +
-                "momento_retirada, statusRecurso, statusEntrega) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_SQL = "INSERT INTO registro (reservaId, userId, recursoId, localId, movimentacaoId, nome, item, numero, ano, turma, periodo, momento_retirada, statusRecurso, statusEntrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_DEVOLUCAO_INFO_SQL = "UPDATE registro SET momento_devolucao = ?, statusRecurso = ?, statusEntrega = ? WHERE registroId = ?";
+    private static final String UPDATE_STATUS_ENTREGA_SQL = "UPDATE registro SET statusEntrega = ? WHERE registroId = ?";
+    private static final String REGISTRAR_DEVOLUCAO_SQL = "UPDATE registro SET momento_devolucao = CURRENT_TIMESTAMP, statusRecurso = 'Disponível', statusEntrega = ? WHERE registroId = ?";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM registro WHERE registroId = ?";
+    private static final String FIND_ALL_SQL = "SELECT * FROM registro ORDER BY momento_retirada DESC";
+    private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM registro WHERE userId = ? ORDER BY momento_retirada DESC";
+    private static final String FIND_PENDENTES_SQL = "SELECT registroId, nome, item, numero, turma, momento_retirada, statusEntrega FROM registro WHERE momento_devolucao IS NULL ORDER BY momento_retirada ASC";
+    private static final String FIND_HISTORICO_SQL = "SELECT r.registroId, r.nome, r.item, r.numero, r.ano, r.turma, r.periodo, r.momento_retirada, r.momento_devolucao, r.statusEntrega, l.local FROM registro r INNER JOIN local l ON r.localId = l.localId ORDER BY r.momento_retirada DESC";
 
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    public void saveRegistro(Registro r) throws SQLException {
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             if (r.getReservaId() != null) {
                 ps.setInt(1, r.getReservaId());
@@ -32,8 +35,6 @@ public class RegistroDAO {
             ps.setInt(3, r.getResourceId());
             ps.setInt(4, r.getLocalId());
             ps.setInt(5, r.getMovimentacaoId());
-
-
             ps.setString(6, r.getNome());
             ps.setString(7, r.getItem());
 
@@ -46,32 +47,27 @@ public class RegistroDAO {
             ps.setString(9, r.getAno());
             ps.setString(10, r.getTurma());
             ps.setString(11, r.getPeriodo());
-
-
             ps.setTimestamp(12, Timestamp.valueOf(r.getMomentoRetirada()));
-
-            // Status
             ps.setString(13, r.getStatusRecurso());
             ps.setString(14, r.getStatusEntrega());
 
-            ps.executeUpdate();
+            int affectedRows = ps.executeUpdate();
 
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    r.setRegistroId(rs.getInt(1));
+            if (affectedRows == 0) {
+                throw new SQLException("Falha ao salvar registro, nenhuma linha afetada.");
+            }
+
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    r.setRegistroId(generatedKeys.getInt(1));
                 }
             }
         }
     }
 
-
-    public void atualizar(Registro r) throws SQLException {
-        String sql = "UPDATE registro SET " +
-                "momento_devolucao = ?, statusRecurso = ?, statusEntrega = ? " +
-                "WHERE registroId = ?";
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    public void updateRegistro(Registro r) throws SQLException {
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(UPDATE_DEVOLUCAO_INFO_SQL)) {
 
             if (r.getMomentoDevolucao() != null) {
                 ps.setTimestamp(1, Timestamp.valueOf(r.getMomentoDevolucao()));
@@ -83,78 +79,61 @@ public class RegistroDAO {
             ps.setString(3, r.getStatusEntrega());
             ps.setInt(4, r.getRegistroId());
 
-            int linhas = ps.executeUpdate();
-            if (linhas == 0) {
-                throw new SQLException("Registro não encontrado para atualização.");
+            int result = ps.executeUpdate();
+            if (result == 0) {
+                throw new SQLException("Registro com id: " + r.getRegistroId() + " não encontrado para atualização.");
             }
         }
     }
 
-
-    public Registro buscarPorId(int registroId) throws SQLException {
-        String sql = "SELECT * FROM registro WHERE registroId = ?";
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    public Registro findRegistroById(int registroId) throws SQLException {
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(FIND_BY_ID_SQL)) {
 
             ps.setInt(1, registroId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapRegistro(rs);
+                    return resultSetToRegistro(rs);
                 }
             }
         }
         return null;
     }
 
-
-    public List<Registro> listarPorUsuario(int userId) throws SQLException {
-        String sql = "SELECT * FROM registro WHERE userId = ? ORDER BY momento_retirada DESC";
+    public List<Registro> findAll() throws SQLException {
         List<Registro> lista = new ArrayList<>();
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(FIND_ALL_SQL);
+             ResultSet rs = ps.executeQuery()) {
 
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+            while (rs.next()) {
+                lista.add(resultSetToRegistro(rs));
+            }
+        }
+        return lista;
+    }
+
+    public List<Registro> findByUserId(int userId) throws SQLException {
+        List<Registro> lista = new ArrayList<>();
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(FIND_BY_USER_ID_SQL)) {
 
             ps.setInt(1, userId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapRegistro(rs));
+                    lista.add(resultSetToRegistro(rs));
                 }
             }
         }
         return lista;
     }
 
-
-    public List<Registro> listarTodos() throws SQLException {
-        String sql = "SELECT * FROM registro ORDER BY momento_retirada DESC";
-        List<Registro> lista = new ArrayList<>();
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                lista.add(mapRegistro(rs));
-            }
-        }
-        return lista;
-    }
-
-
-    public List<RegistroPendenteDto> listarPendentes() throws SQLException {
-        String sql = "SELECT registroId, nome, item, numero, turma, " +
-                "momento_retirada, statusEntrega " +
-                "FROM registro " +
-                "WHERE momento_devolucao IS NULL " +
-                "ORDER BY momento_retirada ASC";
-
+    public List<RegistroPendenteDto> findPendentes() throws SQLException {
         List<RegistroPendenteDto> lista = new ArrayList<>();
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(FIND_PENDENTES_SQL);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -175,20 +154,10 @@ public class RegistroDAO {
         return lista;
     }
 
-
-    public List<RegistroHistoricoDTO> listarHistorico() throws SQLException {
-        String sql = "SELECT r.registroId, r.nome, r.item, r.numero, " +
-                "r.ano, r.turma, r.periodo, " +
-                "r.momento_retirada, r.momento_devolucao, r.statusEntrega, " +
-                "l.local " +
-                "FROM registro r " +
-                "INNER JOIN local l ON r.localId = l.localId " +
-                "ORDER BY r.momento_retirada DESC";
-
+    public List<RegistroHistoricoDTO> findHistorico() throws SQLException {
         List<RegistroHistoricoDTO> lista = new ArrayList<>();
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(FIND_HISTORICO_SQL);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -217,48 +186,35 @@ public class RegistroDAO {
         return lista;
     }
 
-
-    public void atualizarStatusEntrega(int registroId, String novoStatus) throws SQLException {
-        String sql = "UPDATE registro SET statusEntrega = ? WHERE registroId = ?";
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    public void updateStatusEntrega(int registroId, String novoStatus) throws SQLException {
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(UPDATE_STATUS_ENTREGA_SQL)) {
 
             ps.setString(1, novoStatus);
             ps.setInt(2, registroId);
 
-            int linhas = ps.executeUpdate();
-            if (linhas == 0) {
-                throw new SQLException("Registro não encontrado.");
+            int result = ps.executeUpdate();
+            if (result == 0) {
+                throw new SQLException("Registro não encontrado para atualização de status.");
             }
         }
     }
 
-
     public void registrarDevolucao(int registroId, String statusEntrega) throws SQLException {
-        String sql = "UPDATE registro SET " +
-                "momento_devolucao = CURRENT_TIMESTAMP, " +
-                "statusRecurso = 'Disponível', " +
-                "statusEntrega = ? " +
-                "WHERE registroId = ?";
-
-        try (Connection con = Conexao.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection connection = Conexao.getConnection();
+             PreparedStatement ps = connection.prepareStatement(REGISTRAR_DEVOLUCAO_SQL)) {
 
             ps.setString(1, statusEntrega);
             ps.setInt(2, registroId);
 
-            int linhas = ps.executeUpdate();
-            if (linhas == 0) {
-                throw new SQLException("Registro não encontrado.");
+            int result = ps.executeUpdate();
+            if (result == 0) {
+                throw new SQLException("Registro não encontrado para devolução.");
             }
         }
     }
 
-
-
-    //auxiliares
-    private Registro mapRegistro(ResultSet rs) throws SQLException {
+    private Registro resultSetToRegistro(ResultSet rs) throws SQLException {
         Registro r = new Registro();
 
         r.setRegistroId(rs.getInt("registroId"));
@@ -293,15 +249,12 @@ public class RegistroDAO {
 
     private String construirLocalCompleto(String local, String ano, String turma) {
         StringBuilder sb = new StringBuilder(local);
-
         if (ano != null && !ano.isEmpty()) {
             sb.append(" ").append(ano);
         }
-
         if (turma != null && !turma.isEmpty()) {
             sb.append(" ").append(turma);
         }
-
         return sb.toString();
     }
 }

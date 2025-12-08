@@ -21,14 +21,8 @@ public class Recurso {
         this.funcional = funcional;
         this.observacao = observacao;
     }
+    public Recurso(){
 
-    public Recurso(int userId, String codPatrimonio, String item, int numero, Funcional funcional, String observacao) {
-        this.userId = userId;
-        this.codPatrimonio = codPatrimonio;
-        this.item = item;
-        this.numero = numero;
-        this.funcional = funcional;
-        this.observacao = observacao;
     }
 
     public Integer getRecursoId() {

@@ -1,4 +1,4 @@
-package main.java.com.jana.controller;
+package com.jana.controller; // Ajustado o package
 
 import com.google.gson.Gson;
 import com.jana.dao.UsuarioDAO;
@@ -14,51 +14,46 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 @WebServlet("/usuarios/*")
 public class UsuarioController extends HttpServlet {
+
+
     private final UsuarioService usuarioService = new UsuarioService(new UsuarioDAO());
     private final Gson gson = new Gson();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
         try {
-            // 1. Identifica quem está fazendo a requisição
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(gson.toJson("Token ausente ou inválido"));
+                sendJson(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
 
             String listarTodos = req.getParameter("all");
 
             if (listarTodos != null && listarTodos.equals("true")) {
+
                 UsuarioResponseDTO usuarioLogado = usuarioService.getUsuario(userId);
 
                 if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
-                    resp.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403 Forbidden
-                    resp.getWriter().write(gson.toJson("Acesso negado: Apenas administradores podem listar todos os usuários."));
+                    sendJson(resp, HttpServletResponse.SC_FORBIDDEN, "Acesso negado: Apenas administradores.");
                     return;
                 }
 
-                String jsonTodos = gson.toJson(usuarioService.getAllUsuarios());
-                resp.setStatus(HttpServletResponse.SC_OK);
-                resp.getWriter().write(jsonTodos);
+                sendJson(resp, HttpServletResponse.SC_OK, usuarioService.getAllUsuarios());
             } else {
-                resp.setStatus(HttpServletResponse.SC_OK);
-                resp.getWriter().write(gson.toJson(usuarioService.getUsuario(userId)));
+
+                sendJson(resp, HttpServletResponse.SC_OK, usuarioService.getUsuario(userId));
             }
 
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson(e.getMessage()));
+            sendJson(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("Erro no servidor: " + e.getMessage()));
+            e.printStackTrace(); // Bom para ver o erro no console do servidor
+            sendJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
         }
     }
 
@@ -67,25 +62,24 @@ public class UsuarioController extends HttpServlet {
         try {
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write("Token ausente ou inválido");
+                sendJson(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
 
+
             UsuarioUpdateDTO dto = gson.fromJson(req.getReader(), UsuarioUpdateDTO.class);
+
 
             usuarioService.updateUsuario(userId, dto);
 
-            resp.setContentType("application/json");
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write("Usuário atualizado com sucesso");
+
+            sendJson(resp, HttpServletResponse.SC_OK, Map.of("mensagem", "Usuário atualizado com sucesso"));
 
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(e.getMessage());
+            sendJson(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Erro no servidor: " + e.getMessage());
+            e.printStackTrace();
+            sendJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
         }
     }
 
@@ -94,22 +88,31 @@ public class UsuarioController extends HttpServlet {
         try {
             Integer userId = TokenUtils.extrairUserId(req);
             if (userId == null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write("Token ausente ou inválido");
+                sendJson(resp, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
                 return;
             }
+
+
             usuarioService.deleteUsuario(userId);
 
-            resp.setContentType("application/json");
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write("Usuário deletado com sucesso");
+            sendJson(resp, HttpServletResponse.SC_OK, Map.of("mensagem", "Usuário deletado com sucesso"));
 
         } catch (UsuarioNaoEncontradoException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(e.getMessage());
+            sendJson(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Erro no servidor: " + e.getMessage());
+            e.printStackTrace();
+            sendJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro no servidor: " + e.getMessage());
         }
+    }
+
+    // Método auxiliar para padronizar todas as respostas JSON
+    private void sendJson(HttpServletResponse resp, int statusCode, Object data) throws IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setStatus(statusCode);
+
+
+        String jsonOutput = gson.toJson(data);
+        resp.getWriter().write(jsonOutput);
     }
 }

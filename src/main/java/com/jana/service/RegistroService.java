@@ -1,6 +1,5 @@
 package com.jana.service;
 
-
 import com.jana.dao.RegistroDAO;
 import com.jana.dtos.registro.*;
 import com.jana.exceptions.BusinessException;
@@ -43,11 +42,12 @@ public class RegistroService {
         r.setStatusRecurso(dto.statusRecurso() != null ? dto.statusRecurso() : "Ocupado");
         r.setStatusEntrega(dto.statusEntrega() != null ? dto.statusEntrega() : "Ausente");
 
-        registroDAO.criar(r);
+        registroDAO.saveRegistro(r);
     }
 
     public void registrarDevolucao(RegistroUpdateDTO dto) throws BusinessException, SQLException {
-        Registro r = registroDAO.buscarPorId(dto.registroId());
+
+        Registro r = registroDAO.findRegistroById(dto.registroId());
 
         if (r == null) {
             throw new BusinessException("Registro não encontrado.");
@@ -65,21 +65,25 @@ public class RegistroService {
     }
 
     public List<RegistroResponseDTO> listarTodosDTO() throws SQLException {
-        List<Registro> registros = registroDAO.listarTodos();
+
+        List<Registro> registros = registroDAO.findAll();
         return toDTOList(registros);
     }
 
     public List<RegistroResponseDTO> listarPorUsuarioDTO(int userId) throws SQLException {
-        List<Registro> registros = registroDAO.listarPorUsuario(userId);
+
+        List<Registro> registros = registroDAO.findByUserId(userId);
         return toDTOList(registros);
     }
 
     public List<RegistroPendenteDto> listarPendentes() throws SQLException {
-        return registroDAO.listarPendentes();
+
+        return registroDAO.findPendentes();
     }
 
     public List<RegistroHistoricoDTO> listarHistoricoCompleto() throws SQLException {
-        return registroDAO.listarHistorico();
+
+        return registroDAO.findHistorico();
     }
 
     private List<RegistroResponseDTO> toDTOList(List<Registro> registros) {
