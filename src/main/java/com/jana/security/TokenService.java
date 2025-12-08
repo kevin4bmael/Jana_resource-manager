@@ -22,6 +22,8 @@ public class TokenService {
         return Jwts.builder()
                 .subject(usuario.getEmail())
                 .claim("id", usuario.getUserId())
+                .claim("nome", usuario.getNome())
+                .claim("perfil", usuario.getPerfil().toString())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(3, ChronoUnit.HOURS)))
                 .signWith(KEY)

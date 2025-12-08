@@ -60,8 +60,13 @@ public class AuthController extends HttpServlet {
     private void handleRegister(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
         UsuarioRegisterDTO dto = gson.fromJson(request.getReader(), UsuarioRegisterDTO.class);
         authService.register(dto);
+
         response.setStatus(HttpServletResponse.SC_CREATED);
-        response.getWriter().write("Usuário registrado com sucesso");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String json = gson.toJson(Collections.singletonMap("mensagem", "Usuário registrado com sucesso"));
+        response.getWriter().write(json);
     }
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
