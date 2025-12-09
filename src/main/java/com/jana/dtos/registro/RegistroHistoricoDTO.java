@@ -1,5 +1,7 @@
 package com.jana.dtos.registro;
 
+import com.jana.model.enums.StatusEntrega;
+
 import java.time.LocalDateTime;
 
 public record RegistroHistoricoDTO(
@@ -11,6 +13,6 @@ public record RegistroHistoricoDTO(
         String periodo,
         LocalDateTime momentoRetirada,
         LocalDateTime momentoDevolucao,
-        String statusEntrega
+        StatusEntrega statusEntrega
 ) {
 }

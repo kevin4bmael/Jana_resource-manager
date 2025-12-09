@@ -4,6 +4,8 @@ import com.jana.dao.RegistroDAO;
 import com.jana.dtos.registro.*;
 import com.jana.exceptions.BusinessException;
 import com.jana.model.Registro;
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -39,8 +41,8 @@ public class RegistroService {
 
         r.setMomentoRetirada(LocalDateTime.now());
         r.setMomentoDevolucao(null);
-        r.setStatusRecurso(dto.statusRecurso() != null ? dto.statusRecurso() : "Ocupado");
-        r.setStatusEntrega(dto.statusEntrega() != null ? dto.statusEntrega() : "Ausente");
+        r.setStatusRecurso(dto.statusRecurso() != null ? dto.statusRecurso() : StatusRecurso.OCUPADO);
+        r.setStatusEntrega(dto.statusEntrega() != null ? dto.statusEntrega() : StatusEntrega.AUSENTE);
 
         registroDAO.saveRegistro(r);
     }
@@ -57,9 +59,20 @@ public class RegistroService {
             throw new BusinessException("Este registro já está finalizado.");
         }
 
-        String statusFinal = (dto.statusEntrega() != null && !dto.statusEntrega().isEmpty())
-                ? dto.statusEntrega()
-                : "Entregue";
+        if (dto.statusRecurso() != null) {
+            r.setStatusRecurso(dto.statusRecurso());
+        } else {
+            r.setStatusRecurso(StatusRecurso.OCUPADO);
+        }
+
+        String statusFinal;
+        if (dto.statusEntrega() != null) {
+            r.setStatusEntrega(dto.statusEntrega());
+            statusFinal = dto.statusEntrega().name();
+        } else {
+            r.setStatusEntrega(StatusEntrega.AUSENTE);
+            statusFinal = StatusEntrega.AUSENTE.name();
+        }
 
         registroDAO.registrarDevolucao(dto.registroId(), statusFinal);
     }

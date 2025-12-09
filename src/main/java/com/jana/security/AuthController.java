@@ -13,25 +13,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @WebServlet("/auth/*")
 public class AuthController extends HttpServlet {
     private final AuthService authService = new AuthService();
     private final Gson gson = new Gson();
     private final TokenService tokenService = new TokenService();
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Gson gson = new Gson();
-        String path = req.getPathInfo();
-
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json");
+        String path = req.getPathInfo();
 
         if (path == null) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            String json = gson.toJson(Collections.singletonMap("erro", "Caminho incompleto"));
-            resp.getWriter().write(json);
+            resp.getWriter().write(gson.toJson(Map.of("erro", "Caminho incompleto")));
             return;
         }
 
@@ -42,18 +41,19 @@ public class AuthController extends HttpServlet {
                 handleLogin(req, resp);
             } else {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                String json = gson.toJson(Collections.singletonMap("erro", "URL inválida! Path recebido: " + path));
-                resp.getWriter().write(json);
+                resp.getWriter().write(gson.toJson(Map.of("erro", "URL inválida")));
             }
         } catch (EmailJaExisteException e) {
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            String json = gson.toJson(Collections.singletonMap("erro", e.getMessage()));
-            resp.getWriter().write(json);
+            resp.getWriter().write(gson.toJson(Map.of("erro", e.getMessage())));
         } catch (SQLException e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            String json = gson.toJson(Collections.singletonMap("erro", "Erro interno no servidor"));
-            resp.getWriter().write(json);
+            resp.getWriter().write(gson.toJson(Map.of("erro", "Erro interno")));
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write(gson.toJson(Map.of("erro", "Erro inesperado")));
         }
     }
 
@@ -62,28 +62,29 @@ public class AuthController extends HttpServlet {
         authService.register(dto);
 
         response.setStatus(HttpServletResponse.SC_CREATED);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String json = gson.toJson(Collections.singletonMap("mensagem", "Usuário registrado com sucesso"));
-        response.getWriter().write(json);
+        response.getWriter().write(gson.toJson(Map.of("mensagem", "Usuário registrado com sucesso")));
     }
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
         UsuarioLoginDTO dto = gson.fromJson(request.getReader(), UsuarioLoginDTO.class);
+        Usuario usuario = authService.login(dto);
 
-        Usuario usuarioLogado = authService.login(dto);
-
-        if (usuarioLogado != null) {
-            String token = tokenService.generateToken(usuarioLogado);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/json");
-
-            response.getWriter().write("{\"token\": \"" + token + "\"}");
-        } else {
+        if (usuario == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Usuário ou senha inválidos");
+            response.getWriter().write(gson.toJson(Map.of("erro", "Credenciais inválidas")));
+            return;
         }
+
+        String token = tokenService.generateToken(usuario);
+
+        Map<String, Object> resposta = new HashMap<>();
+        resposta.put("token", token);
+        resposta.put("id", usuario.getUserId());
+        resposta.put("nome", usuario.getNome());
+        resposta.put("email", usuario.getEmail());
+        resposta.put("perfil", usuario.getPerfil().name());
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().write(gson.toJson(resposta));
     }
 }

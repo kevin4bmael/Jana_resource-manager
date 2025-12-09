@@ -1,5 +1,8 @@
 package com.jana.dtos.registro;
 
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
+
 public record RegistroInsertDTO(
         Integer reservaId,
         Integer userId,
@@ -12,6 +15,6 @@ public record RegistroInsertDTO(
         String ano,
         String turma,
         String periodo,
-        String statusRecurso,
-        String statusEntrega
+        StatusRecurso statusRecurso,
+        StatusEntrega statusEntrega
 ) {}

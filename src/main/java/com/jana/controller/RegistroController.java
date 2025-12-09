@@ -47,7 +47,8 @@ public class RegistroController extends HttpServlet {
                     }
                     @Override
                     public LocalDateTime read(JsonReader in) throws IOException {
-                        return LocalDateTime.parse(in.nextString());
+                        String dateStr = in.nextString();
+                        return dateStr != null ? LocalDateTime.parse(dateStr) : null;
                     }
                 })
                 .create();
@@ -84,6 +85,8 @@ public class RegistroController extends HttpServlet {
                 default:
                     enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
             }
+        } catch (BusinessException e) {
+            enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             enviarErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -100,7 +103,6 @@ public class RegistroController extends HttpServlet {
         }
 
         try {
-
             Integer userId = TokenUtils.extrairUserId(request);
             if (userId == null) {
                 enviarErro(response, HttpServletResponse.SC_UNAUTHORIZED, "Token ausente ou inválido");
@@ -118,11 +120,12 @@ public class RegistroController extends HttpServlet {
                 default:
                     enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Ação inválida");
             }
+        } catch (BusinessException e) {
+            enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             enviarErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
-
 
     private void listarTodos(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, SQLException {
@@ -143,7 +146,6 @@ public class RegistroController extends HttpServlet {
 
         Integer idSolicitado = Integer.parseInt(idParam);
 
-
         if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR && !usuarioLogado.id().equals(idSolicitado)) {
             enviarErro(response, HttpServletResponse.SC_FORBIDDEN, "Você não pode visualizar registros de outro usuário.");
             return;
@@ -155,7 +157,7 @@ public class RegistroController extends HttpServlet {
 
     private void listarPendentes(HttpServletRequest request, HttpServletResponse response, UsuarioResponseDTO usuarioLogado)
             throws IOException, SQLException {
-        // Geralmente apenas Admin ou setor responsável vê pendências gerais
+
         if (usuarioLogado.perfil() != Perfil.ADMINISTRADOR) {
             enviarErro(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado.");
             return;
@@ -183,8 +185,6 @@ public class RegistroController extends HttpServlet {
 
         if (dto == null) throw new BusinessException("JSON inválido");
 
-
-
         registroService.registrarRetirada(dto);
         enviarSucesso(response, "Retirada realizada com sucesso");
     }
@@ -200,7 +200,6 @@ public class RegistroController extends HttpServlet {
         registroService.registrarDevolucao(dto);
         enviarSucesso(response, "Devolução realizada com sucesso");
     }
-
 
     private String lerBody(HttpServletRequest request) throws IOException {
         StringBuilder sb = new StringBuilder();

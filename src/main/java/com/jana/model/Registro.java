@@ -1,6 +1,9 @@
 package com.jana.model;
 
 
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
+
 import java.time.LocalDateTime;
 
 public class Registro {
@@ -21,10 +24,10 @@ public class Registro {
     private LocalDateTime momentoRetirada;
     private LocalDateTime momentoDevolucao;
 
-    private String statusRecurso;
-    private String statusEntrega;
+    private StatusRecurso statusRecurso;
+    private StatusEntrega statusEntrega;
 
-    public Registro(int registroId, Integer reservaId, int userId, int resourceId, int localId, int movimentacaoId, String nome, String item, Integer numero, String ano, String turma, String periodo, LocalDateTime momentoRetirada, LocalDateTime momentoDevolucao, String statusRecurso, String statusEntrega) {
+    public Registro(Integer registroId, Integer reservaId, Integer userId, Integer resourceId, Integer localId, Integer movimentacaoId, String nome, String item, Integer numero, String ano, String turma, String periodo, LocalDateTime momentoRetirada, LocalDateTime momentoDevolucao, StatusRecurso statusRecurso, StatusEntrega statusEntrega) {
         this.registroId = registroId;
         this.reservaId = reservaId;
         this.userId = userId;
@@ -42,15 +45,14 @@ public class Registro {
         this.statusRecurso = statusRecurso;
         this.statusEntrega = statusEntrega;
     }
+    public Registro(){
 
-    public Registro() {
     }
-
-    public int getRegistroId() {
+    public Integer getRegistroId() {
         return registroId;
     }
 
-    public void setRegistroId(int registroId) {
+    public void setRegistroId(Integer registroId) {
         this.registroId = registroId;
     }
 
@@ -62,35 +64,35 @@ public class Registro {
         this.reservaId = reservaId;
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
-    public int getResourceId() {
+    public Integer getResourceId() {
         return resourceId;
     }
 
-    public void setResourceId(int resourceId) {
+    public void setResourceId(Integer resourceId) {
         this.resourceId = resourceId;
     }
 
-    public int getLocalId() {
+    public Integer getLocalId() {
         return localId;
     }
 
-    public void setLocalId(int localId) {
+    public void setLocalId(Integer localId) {
         this.localId = localId;
     }
 
-    public int getMovimentacaoId() {
+    public Integer getMovimentacaoId() {
         return movimentacaoId;
     }
 
-    public void setMovimentacaoId(int movimentacaoId) {
+    public void setMovimentacaoId(Integer movimentacaoId) {
         this.movimentacaoId = movimentacaoId;
     }
 
@@ -158,19 +160,19 @@ public class Registro {
         this.momentoDevolucao = momentoDevolucao;
     }
 
-    public String getStatusRecurso() {
+    public StatusRecurso getStatusRecurso() {
         return statusRecurso;
     }
 
-    public void setStatusRecurso(String statusRecurso) {
+    public void setStatusRecurso(StatusRecurso statusRecurso) {
         this.statusRecurso = statusRecurso;
     }
 
-    public String getStatusEntrega() {
+    public StatusEntrega getStatusEntrega() {
         return statusEntrega;
     }
 
-    public void setStatusEntrega(String statusEntrega) {
+    public void setStatusEntrega(StatusEntrega statusEntrega) {
         this.statusEntrega = statusEntrega;
     }
 }

@@ -3,6 +3,8 @@ package com.jana.dao;
 import com.jana.dtos.registro.RegistroHistoricoDTO;
 import com.jana.dtos.registro.RegistroPendenteDto;
 import com.jana.model.Registro;
+import com.jana.model.enums.StatusEntrega;
+import com.jana.model.enums.StatusRecurso;
 import com.jana.utils.Conexao;
 
 import java.sql.*;
@@ -20,7 +22,11 @@ public class RegistroDAO {
     private static final String FIND_ALL_SQL = "SELECT * FROM registro ORDER BY momento_retirada DESC";
     private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM registro WHERE userId = ? ORDER BY momento_retirada DESC";
     private static final String FIND_PENDENTES_SQL = "SELECT registroId, nome, item, numero, turma, momento_retirada, statusEntrega FROM registro WHERE momento_devolucao IS NULL ORDER BY momento_retirada ASC";
-    private static final String FIND_HISTORICO_SQL = "SELECT r.registroId, r.nome, r.item, r.numero, r.ano, r.turma, r.periodo, r.momento_retirada, r.momento_devolucao, r.statusEntrega, l.local FROM registro r INNER JOIN local l ON r.localId = l.localId ORDER BY r.momento_retirada DESC";
+    private static final String FIND_HISTORICO_SQL =
+            "SELECT r.registroId, r.nome, r.item, r.numero, r.ano, r.turma, r.periodo, " +
+                    "r.momento_retirada, r.momento_devolucao, r.statusEntrega, l.local " +
+                    "FROM registro r INNER JOIN `local` l ON r.localId = l.localId " +
+                    "ORDER BY r.momento_retirada DESC";
 
     public void saveRegistro(Registro r) throws SQLException {
         try (Connection connection = Conexao.getConnection();
@@ -48,8 +54,8 @@ public class RegistroDAO {
             ps.setString(10, r.getTurma());
             ps.setString(11, r.getPeriodo());
             ps.setTimestamp(12, Timestamp.valueOf(r.getMomentoRetirada()));
-            ps.setString(13, r.getStatusRecurso());
-            ps.setString(14, r.getStatusEntrega());
+            ps.setString(13, r.getStatusRecurso().name());
+            ps.setString(14, r.getStatusEntrega().name());
 
             int affectedRows = ps.executeUpdate();
 
@@ -75,8 +81,9 @@ public class RegistroDAO {
                 ps.setNull(1, Types.TIMESTAMP);
             }
 
-            ps.setString(2, r.getStatusRecurso());
-            ps.setString(3, r.getStatusEntrega());
+
+            ps.setString(2, r.getStatusRecurso().name());
+            ps.setString(3, r.getStatusEntrega().name());
             ps.setInt(4, r.getRegistroId());
 
             int result = ps.executeUpdate();
@@ -241,8 +248,8 @@ public class RegistroDAO {
             r.setMomentoDevolucao(tsDev.toLocalDateTime());
         }
 
-        r.setStatusRecurso(rs.getString("statusRecurso"));
-        r.setStatusEntrega(rs.getString("statusEntrega"));
+        r.setStatusRecurso(StatusRecurso.valueOf(rs.getString("statusRecurso")));
+        r.setStatusEntrega(StatusEntrega.valueOf(rs.getString("statusEntrega")));
 
         return r;
     }

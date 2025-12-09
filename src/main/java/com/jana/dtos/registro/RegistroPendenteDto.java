@@ -1,5 +1,7 @@
 package com.jana.dtos.registro;
 
+import com.jana.model.enums.StatusEntrega;
+
 import java.time.LocalDateTime;
 
 public record RegistroPendenteDto(
@@ -9,5 +11,5 @@ public record RegistroPendenteDto(
         int numeroRecurso,
         String turma,
         LocalDateTime momentoRetirada,
-        String statusEntrega
+        StatusEntrega statusEntrega
 ) {}
