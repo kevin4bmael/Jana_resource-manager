@@ -147,6 +147,10 @@ public class RegistroDAO {
                 Timestamp ts = rs.getTimestamp("momento_retirada");
                 LocalDateTime momentoRetirada = ts != null ? ts.toLocalDateTime() : null;
 
+                // CORREÇÃO: Converter String do DB para Enum
+                String statusString = rs.getString("statusEntrega");
+                StatusEntrega statusEnum = (statusString != null) ? StatusEntrega.valueOf(statusString) : null;
+
                 lista.add(new RegistroPendenteDto(
                         rs.getInt("registroId"),
                         rs.getString("nome"),
@@ -154,7 +158,7 @@ public class RegistroDAO {
                         rs.getInt("numero"),
                         rs.getString("turma"),
                         momentoRetirada,
-                        rs.getString("statusEntrega")
+                        statusEnum
                 ));
             }
         }
@@ -177,6 +181,10 @@ public class RegistroDAO {
                 Timestamp tsRet = rs.getTimestamp("momento_retirada");
                 Timestamp tsDev = rs.getTimestamp("momento_devolucao");
 
+                // CORREÇÃO: Converter String do DB para Enum
+                String statusString = rs.getString("statusEntrega");
+                StatusEntrega statusEnum = (statusString != null) ? StatusEntrega.valueOf(statusString) : null;
+
                 lista.add(new RegistroHistoricoDTO(
                         rs.getInt("registroId"),
                         rs.getString("nome"),
@@ -186,7 +194,7 @@ public class RegistroDAO {
                         rs.getString("periodo"),
                         tsRet != null ? tsRet.toLocalDateTime() : null,
                         tsDev != null ? tsDev.toLocalDateTime() : null,
-                        rs.getString("statusEntrega")
+                        statusEnum
                 ));
             }
         }
