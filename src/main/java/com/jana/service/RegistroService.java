@@ -25,6 +25,13 @@ public class RegistroService {
             throw new BusinessException("Usuário, recurso e local são obrigatórios para a retirada.");
         }
 
+
+        boolean recursoOcupado = registroDAO.isRecursoEmUso(dto.recursoId());
+
+        if (recursoOcupado) {
+            throw new BusinessException("Este recurso já foi retirado e ainda não foi devolvido.");
+        }
+
         Registro r = new Registro();
         r.setReservaId(dto.reservaId());
         r.setUserId(dto.userId());

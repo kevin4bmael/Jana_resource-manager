@@ -90,7 +90,22 @@ public class RegistroDAO {
             }
         }
     }
+    public boolean isRecursoEmUso(int recursoId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM registro WHERE recursoId = ? AND momento_devolucao IS NULL";
 
+        try (Connection conn = Conexao.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, recursoId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
     public Registro findRegistroById(int registroId) throws SQLException {
         try (Connection connection = Conexao.getConnection();
              PreparedStatement ps = connection.prepareStatement(FIND_BY_ID_SQL)) {
