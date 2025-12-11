@@ -1,8 +1,7 @@
 package com.jana.model;
 
 
-import com.jana.model.enums.StatusEntrega;
-import com.jana.model.enums.StatusRecurso;
+import com.jana.model.enums.*;
 
 import java.time.LocalDateTime;
 
@@ -11,15 +10,15 @@ public class Registro {
     private Integer registroId;
     private Integer reservaId;
     private Integer userId;
-    private Integer resourceId;
+    private Integer recursoId;
     private Integer localId;
     private Integer movimentacaoId;
     private String nome;
     private String item;
     private Integer numero;
-    private String ano;
-    private String turma;
-    private String periodo;
+    private Ano ano;
+    private Turma turma;
+    private Periodo periodo;
 
     private LocalDateTime momentoRetirada;
     private LocalDateTime momentoDevolucao;
@@ -27,11 +26,11 @@ public class Registro {
     private StatusRecurso statusRecurso;
     private StatusEntrega statusEntrega;
 
-    public Registro(Integer registroId, Integer reservaId, Integer userId, Integer resourceId, Integer localId, Integer movimentacaoId, String nome, String item, Integer numero, String ano, String turma, String periodo, LocalDateTime momentoRetirada, LocalDateTime momentoDevolucao, StatusRecurso statusRecurso, StatusEntrega statusEntrega) {
+    public Registro(Integer registroId, Integer reservaId, Integer userId, Integer recursoId, Integer localId, Integer movimentacaoId, String nome, String item, Integer numero, Ano ano, Turma turma, Periodo periodo, LocalDateTime momentoRetirada, LocalDateTime momentoDevolucao, StatusRecurso statusRecurso, StatusEntrega statusEntrega) {
         this.registroId = registroId;
         this.reservaId = reservaId;
         this.userId = userId;
-        this.resourceId = resourceId;
+        this.recursoId = recursoId;
         this.localId = localId;
         this.movimentacaoId = movimentacaoId;
         this.nome = nome;
@@ -48,6 +47,7 @@ public class Registro {
     public Registro(){
 
     }
+
     public Integer getRegistroId() {
         return registroId;
     }
@@ -72,12 +72,12 @@ public class Registro {
         this.userId = userId;
     }
 
-    public Integer getResourceId() {
-        return resourceId;
+    public Integer getRecursoId() {
+        return recursoId;
     }
 
-    public void setResourceId(Integer resourceId) {
-        this.resourceId = resourceId;
+    public void setRecursoId(Integer recursoId) {
+        this.recursoId = recursoId;
     }
 
     public Integer getLocalId() {
@@ -120,27 +120,27 @@ public class Registro {
         this.numero = numero;
     }
 
-    public String getAno() {
+    public Ano getAno() {
         return ano;
     }
 
-    public void setAno(String ano) {
+    public void setAno(Ano ano) {
         this.ano = ano;
     }
 
-    public String getTurma() {
+    public Turma getTurma() {
         return turma;
     }
 
-    public void setTurma(String turma) {
+    public void setTurma(Turma turma) {
         this.turma = turma;
     }
 
-    public String getPeriodo() {
+    public Periodo getPeriodo() {
         return periodo;
     }
 
-    public void setPeriodo(String periodo) {
+    public void setPeriodo(Periodo periodo) {
         this.periodo = periodo;
     }
 

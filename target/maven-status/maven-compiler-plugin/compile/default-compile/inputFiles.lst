@@ -24,13 +24,10 @@ C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\reserva\Reser
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\service\LocalService.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\reserva\ReservaResponseDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\model\Reserva.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\movimentacao\MovimentacaoResponseDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\registro\RegistroPendenteDto.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\model\Movimentacao.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\controller\RecursoController.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\exceptions\usuario\UsuarioNaoEncontradoException.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\service\RegistroService.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\movimentacao\MovimentacaoRegisterDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\model\Recurso.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\recurso\RecursoRegisterDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\exceptions\reserva\ReservaNaoEncontradaException.java
@@ -40,7 +37,6 @@ C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\controller\LocalCo
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\recurso\RecursoResponseDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\Main.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\usuario\UsuarioResponseDTO.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\controller\MovimentacaoController.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\usuario\UsuarioUpdateDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\local\LocalUpdateDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\reserva\ReservaRegisterDTO.java
@@ -50,7 +46,6 @@ C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\security\TokenServ
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\model\Usuario.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\local\LocalResponseDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\registro\RegistroInsertDTO.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\service\MovimentacaoService.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\security\AuthService.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\local\LocalRegisterDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\model\enums\Periodo.java
@@ -58,9 +53,7 @@ C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dao\UsuarioDAO.jav
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\security\AuthController.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\service\UsuarioService.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dao\ReservaDAO.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\movimentacao\MovimentacaoUpdateDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\registro\RegistroHistoricoDTO.java
-C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dao\MovimentacaoDAO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\recurso\RecursoUpdateDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\dtos\registro\RegistroResponseDTO.java
 C:\Users\Usuário\Desktop\jana_projeto\src\main\java\com\jana\model\enums\Ano.java

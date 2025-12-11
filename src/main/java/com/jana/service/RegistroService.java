@@ -28,7 +28,7 @@ public class RegistroService {
         Registro r = new Registro();
         r.setReservaId(dto.reservaId());
         r.setUserId(dto.userId());
-        r.setResourceId(dto.recursoId());
+        r.setRecursoId(dto.recursoId());
         r.setLocalId(dto.localId());
         r.setMovimentacaoId(dto.movimentacaoId());
 
@@ -107,7 +107,7 @@ public class RegistroService {
                     r.getRegistroId(),
                     r.getReservaId(),
                     r.getUserId(),
-                    r.getResourceId(),
+                    r.getRecursoId(),
                     r.getLocalId(),
                     r.getMovimentacaoId(),
                     r.getNome(),

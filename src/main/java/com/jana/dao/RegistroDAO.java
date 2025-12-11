@@ -3,8 +3,7 @@ package com.jana.dao;
 import com.jana.dtos.registro.RegistroHistoricoDTO;
 import com.jana.dtos.registro.RegistroPendenteDto;
 import com.jana.model.Registro;
-import com.jana.model.enums.StatusEntrega;
-import com.jana.model.enums.StatusRecurso;
+import com.jana.model.enums.*;
 import com.jana.utils.Conexao;
 
 import java.sql.*;
@@ -17,7 +16,7 @@ public class RegistroDAO {
     private static final String INSERT_SQL = "INSERT INTO registro (reservaId, userId, recursoId, localId, movimentacaoId, nome, item, numero, ano, turma, periodo, momento_retirada, statusRecurso, statusEntrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_DEVOLUCAO_INFO_SQL = "UPDATE registro SET momento_devolucao = ?, statusRecurso = ?, statusEntrega = ? WHERE registroId = ?";
     private static final String UPDATE_STATUS_ENTREGA_SQL = "UPDATE registro SET statusEntrega = ? WHERE registroId = ?";
-    private static final String REGISTRAR_DEVOLUCAO_SQL = "UPDATE registro SET momento_devolucao = CURRENT_TIMESTAMP, statusRecurso = 'Disponível', statusEntrega = ? WHERE registroId = ?";
+    private static final String REGISTRAR_DEVOLUCAO_SQL = "UPDATE registro SET momento_devolucao = CURRENT_TIMESTAMP, statusRecurso = 'Disponivel', statusEntrega = ? WHERE registroId = ?";
     private static final String FIND_BY_ID_SQL = "SELECT * FROM registro WHERE registroId = ?";
     private static final String FIND_ALL_SQL = "SELECT * FROM registro ORDER BY momento_retirada DESC";
     private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM registro WHERE userId = ? ORDER BY momento_retirada DESC";
@@ -38,7 +37,7 @@ public class RegistroDAO {
                 ps.setNull(1, Types.INTEGER);
             }
             ps.setInt(2, r.getUserId());
-            ps.setInt(3, r.getResourceId());
+            ps.setInt(3, r.getRecursoId());
             ps.setInt(4, r.getLocalId());
             ps.setInt(5, r.getMovimentacaoId());
             ps.setString(6, r.getNome());
@@ -50,12 +49,12 @@ public class RegistroDAO {
                 ps.setNull(8, Types.INTEGER);
             }
 
-            ps.setString(9, r.getAno());
-            ps.setString(10, r.getTurma());
-            ps.setString(11, r.getPeriodo());
+            ps.setString(9, r.getAno() != null ? r.getAno().toString() : null);
+            ps.setString(10, r.getTurma() != null ? r.getTurma().toString() : null);
+            ps.setString(11, r.getPeriodo() != null ? r.getPeriodo().toString() : null);
             ps.setTimestamp(12, Timestamp.valueOf(r.getMomentoRetirada()));
-            ps.setString(13, r.getStatusRecurso().name());
-            ps.setString(14, r.getStatusEntrega().name());
+            ps.setString(13, r.getStatusRecurso() != null ? r.getStatusRecurso().toString() : null);
+            ps.setString(14, r.getStatusEntrega() != null ? r.getStatusEntrega().toString() : null);
 
             int affectedRows = ps.executeUpdate();
 
@@ -81,9 +80,8 @@ public class RegistroDAO {
                 ps.setNull(1, Types.TIMESTAMP);
             }
 
-
-            ps.setString(2, r.getStatusRecurso().name());
-            ps.setString(3, r.getStatusEntrega().name());
+            ps.setString(2, r.getStatusRecurso() != null ? r.getStatusRecurso().toString() : null);
+            ps.setString(3, r.getStatusEntrega() != null ? r.getStatusEntrega().toString() : null);
             ps.setInt(4, r.getRegistroId());
 
             int result = ps.executeUpdate();
@@ -147,16 +145,18 @@ public class RegistroDAO {
                 Timestamp ts = rs.getTimestamp("momento_retirada");
                 LocalDateTime momentoRetirada = ts != null ? ts.toLocalDateTime() : null;
 
-                // CORREÇÃO: Converter String do DB para Enum
                 String statusString = rs.getString("statusEntrega");
-                StatusEntrega statusEnum = (statusString != null) ? StatusEntrega.valueOf(statusString) : null;
+                StatusEntrega statusEnum = (statusString != null) ? StatusEntrega.valueOf(statusString.toUpperCase()) : null;
+
+                String turmaString = rs.getString("turma");
+                Turma turmaEnum = (turmaString != null) ? Turma.valueOf(turmaString.toUpperCase()) : null;
 
                 lista.add(new RegistroPendenteDto(
                         rs.getInt("registroId"),
                         rs.getString("nome"),
                         rs.getString("item"),
                         rs.getInt("numero"),
-                        rs.getString("turma"),
+                        turmaEnum,
                         momentoRetirada,
                         statusEnum
                 ));
@@ -181,9 +181,11 @@ public class RegistroDAO {
                 Timestamp tsRet = rs.getTimestamp("momento_retirada");
                 Timestamp tsDev = rs.getTimestamp("momento_devolucao");
 
-                // CORREÇÃO: Converter String do DB para Enum
                 String statusString = rs.getString("statusEntrega");
-                StatusEntrega statusEnum = (statusString != null) ? StatusEntrega.valueOf(statusString) : null;
+                StatusEntrega statusEnum = (statusString != null) ? StatusEntrega.valueOf(statusString.toUpperCase()) : null;
+
+                String periodoString = rs.getString("periodo");
+                Periodo periodoEnum = (periodoString != null) ? Periodo.valueOf(periodoString.toUpperCase()) : null;
 
                 lista.add(new RegistroHistoricoDTO(
                         rs.getInt("registroId"),
@@ -191,7 +193,7 @@ public class RegistroDAO {
                         rs.getString("item"),
                         (Integer) rs.getObject("numero"),
                         localCompleto,
-                        rs.getString("periodo"),
+                        periodoEnum,
                         tsRet != null ? tsRet.toLocalDateTime() : null,
                         tsDev != null ? tsDev.toLocalDateTime() : null,
                         statusEnum
@@ -235,16 +237,22 @@ public class RegistroDAO {
         r.setRegistroId(rs.getInt("registroId"));
         r.setReservaId((Integer) rs.getObject("reservaId"));
         r.setUserId(rs.getInt("userId"));
-        r.setResourceId(rs.getInt("recursoId"));
+        r.setRecursoId(rs.getInt("recursoId"));
         r.setLocalId(rs.getInt("localId"));
         r.setMovimentacaoId(rs.getInt("movimentacaoId"));
 
         r.setNome(rs.getString("nome"));
         r.setItem(rs.getString("item"));
         r.setNumero((Integer) rs.getObject("numero"));
-        r.setAno(rs.getString("ano"));
-        r.setTurma(rs.getString("turma"));
-        r.setPeriodo(rs.getString("periodo"));
+
+        String anoStr = rs.getString("ano");
+        if (anoStr != null) r.setAno(Ano.valueOf(anoStr.toUpperCase()));
+
+        String turmaStr = rs.getString("turma");
+        if (turmaStr != null) r.setTurma(Turma.valueOf(turmaStr.toUpperCase()));
+
+        String periodoStr = rs.getString("periodo");
+        if (periodoStr != null) r.setPeriodo(Periodo.valueOf(periodoStr.toUpperCase()));
 
         Timestamp tsRet = rs.getTimestamp("momento_retirada");
         if (tsRet != null) {
@@ -256,8 +264,11 @@ public class RegistroDAO {
             r.setMomentoDevolucao(tsDev.toLocalDateTime());
         }
 
-        r.setStatusRecurso(StatusRecurso.valueOf(rs.getString("statusRecurso")));
-        r.setStatusEntrega(StatusEntrega.valueOf(rs.getString("statusEntrega")));
+        String statusRecursoStr = rs.getString("statusRecurso");
+        if (statusRecursoStr != null) r.setStatusRecurso(StatusRecurso.valueOf(statusRecursoStr.toUpperCase()));
+
+        String statusEntregaStr = rs.getString("statusEntrega");
+        if (statusEntregaStr != null) r.setStatusEntrega(StatusEntrega.valueOf(statusEntregaStr.toUpperCase()));
 
         return r;
     }

@@ -2,14 +2,14 @@ package com.jana.model.enums;
 
 public enum TipoLocal {
     SALA_DE_AULA("Sala de Aula"),
-    AUDITORIO("Auditório"),
+    AUDITORIO("Auditorio"),
     PATIO("Patio"),
     BIBLIOTECA("Biblioteca"),
     QUADRA("Quadra"),
-    REFEITORIO("Refeitório"),
+    REFEITORIO("Refeitorio"),
     SECRETARIA("Secretaria"),
-    LABORATORIO("Laboratório"),
-    INFORMATICA("Informática"),
+    LABORATORIO("Laboratorio"),
+    INFORMATICA("Informatica"),
     OUTRO("Outro");
 
     private final String valor;
