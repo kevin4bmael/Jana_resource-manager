@@ -84,28 +84,6 @@ public class RegistroService {
         registroDAO.registrarDevolucao(dto.registroId(), statusFinal);
     }
 
-    public List<RegistroResponseDTO> listarTodosDTO() throws SQLException {
-
-        List<Registro> registros = registroDAO.findAll();
-        return toDTOList(registros);
-    }
-
-    public List<RegistroResponseDTO> listarPorUsuarioDTO(int userId) throws SQLException {
-
-        List<Registro> registros = registroDAO.findByUserId(userId);
-        return toDTOList(registros);
-    }
-
-    public List<RegistroPendenteDto> listarPendentes() throws SQLException {
-
-        return registroDAO.findPendentes();
-    }
-
-    public List<RegistroHistoricoDTO> listarHistoricoCompleto() throws SQLException {
-
-        return registroDAO.findHistorico();
-    }
-
     private List<RegistroResponseDTO> toDTOList(List<Registro> registros) {
         List<RegistroResponseDTO> dtos = new ArrayList<>();
 
